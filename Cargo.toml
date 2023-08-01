@@ -1,0 +1,21 @@
+[package]
+name = "raeys"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dotenv = "0.15.0"
+serenity = { version = "0.10", features = [
+    "builder",
+    "cache",
+    "client",
+    "gateway",
+    "http",
+    "model",
+    "utils",
+    "voice",
+    "rustls_backend",
+], default-features = false }
+tokio = { version = "1", features = ["full"] }
