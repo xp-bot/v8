@@ -33,9 +33,11 @@ impl EventHandler for Handler {
         // register slash commands
         for guild in guilds {
             let commands = GuildId::set_application_commands(&guild, &ctx.http, |commands| {
-                commands.create_application_command(|command| {
-                    commands::misc::leaderboard::register(command)
-                })
+                commands
+                    .create_application_command(|command| {
+                        commands::misc::leaderboard::register(command)
+                    })
+                    .create_application_command(|command| commands::misc::about::register(command))
             })
             .await;
 
@@ -48,9 +50,11 @@ impl EventHandler for Handler {
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+        // handle slash commands
         if let Interaction::ApplicationCommand(command) = interaction {
             match command.data.name.as_str() {
                 "leaderboard" => commands::misc::leaderboard::exec(ctx, command).await,
+                "about" => commands::misc::about::exec(ctx, command).await,
                 _ => {
                     error!("Received unknown command: {:?}", command);
                     return ();
