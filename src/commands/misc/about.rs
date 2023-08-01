@@ -21,7 +21,7 @@ pub async fn exec(ctx: Context, command: ApplicationCommandInteraction) {
                 message.embed(
                     |embed: &mut CreateEmbed| embed
                         .title("Reimagine your Community")
-                        .description("Elevate your Discord community to the next level with top-tier leveling, endless customizability and more.")
+                        .description("Elevate your Discord community to the next level with top-tier leveling, endless customizability and more.\n\nBuilt with [serenity](https://github.com/serenity-rs/serenity) and [rust](https://www.rust-lang.org/).")
                         .field("Official Support Server", "[discord.gg](https://discord.xp-bot.net)", true)
                         .field("Vote", "[top.gg](https://vote.xp-bot.net)", true)
                         .field("Status", "[status](https://status.xp-bot.net)", true)
