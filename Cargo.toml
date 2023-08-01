@@ -7,6 +7,8 @@ edition = "2021"
 
 [dependencies]
 dotenv = "0.15.0"
+env_logger = "0.10.0"
+log = "0.4.19"
 serenity = { version = "0.10", features = [
     "builder",
     "cache",
