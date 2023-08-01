@@ -9,15 +9,14 @@ edition = "2021"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 log = "0.4.19"
-serenity = { version = "0.10", features = [
+serenity = { version = "0.11.6", features = [
     "builder",
-    "cache",
     "client",
     "gateway",
     "http",
     "model",
     "utils",
-    "voice",
     "rustls_backend",
+    "cache",
 ], default-features = false }
 tokio = { version = "1", features = ["full"] }

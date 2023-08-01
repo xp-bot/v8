@@ -1,6 +1,6 @@
 use events::handler::Handler;
 use log::{error, info};
-use serenity::{client::bridge::gateway::GatewayIntents, Client};
+use serenity::{Client, prelude::GatewayIntents};
 use std::{env, time::Duration};
 use tokio::time::sleep;
 
@@ -15,14 +15,13 @@ async fn main() {
     // client initialization
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
-    let mut client = Client::builder(&token)
+    let mut client = Client::builder(&token, 
+        GatewayIntents::non_privileged()
+            | GatewayIntents::GUILD_MEMBERS
+            | GatewayIntents::GUILD_MESSAGES
+            | GatewayIntents::GUILDS,
+    )
         .event_handler(Handler)
-        .intents(
-            GatewayIntents::non_privileged()
-                | GatewayIntents::GUILD_MEMBERS
-                | GatewayIntents::GUILD_MESSAGES
-                | GatewayIntents::GUILDS,
-        )
         .await
         .expect("Err creating client");
 
