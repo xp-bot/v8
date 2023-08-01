@@ -7,6 +7,7 @@ use tokio::time::sleep;
 mod commands;
 mod events;
 mod utils;
+mod api;
 
 #[tokio::main]
 async fn main() {

@@ -8,7 +8,11 @@ edition = "2021"
 [dependencies]
 dotenv = "0.15.0"
 env_logger = "0.10.0"
+libmath = "0.2.1"
 log = "0.4.19"
+reqwest = "0.11.18"
+round = "0.1.2"
+serde = "1.0.180"
 serenity = { version = "0.11.6", features = [
     "builder",
     "client",
