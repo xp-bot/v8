@@ -12,6 +12,7 @@ f.e.:
 feat(commands): add ping command
 fix(commands): fix ping command
 ```
+- Always create a new branch for your feature. When you're done, create a pull request to merge your branch into `dev`. `dev` will be merged into `master` when we're ready to release a new version.
 
 # Run the bot
 1. `docker pull angelsflyinhell/raeys:latest`
