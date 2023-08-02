@@ -39,6 +39,7 @@ impl EventHandler for Handler {
                     })
                     .create_application_command(|command| commands::misc::about::register(command))
                     .create_application_command(|command| commands::misc::level::register(command))
+                    .create_application_command(|command| commands::misc::rank::register(command))
             })
             .await;
 
@@ -57,6 +58,7 @@ impl EventHandler for Handler {
                 "leaderboard" => commands::misc::leaderboard::exec(ctx, command).await,
                 "about" => commands::misc::about::exec(ctx, command).await,
                 "level" => commands::misc::level::exec(ctx, command).await,
+                "rank" => commands::misc::rank::exec(ctx, command).await,
                 _ => {
                     error!("Received unknown command: {:?}", command);
                     return ();
