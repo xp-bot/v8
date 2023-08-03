@@ -14,5 +14,7 @@ pub fn generate_ranking_card() -> Result<(), Box<dyn std::error::Error>> {
 
     img.save("./assets/test.png")?;
     
+    log::info!("Generated ranking card");
+
     Ok(())
 }
