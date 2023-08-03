@@ -1,4 +1,4 @@
-name: Check server build
+name: Check Build
 
 on:
   push:
