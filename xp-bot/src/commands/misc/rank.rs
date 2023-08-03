@@ -1,6 +1,10 @@
-use serenity::{builder::CreateApplicationCommand, model::prelude::application_command::ApplicationCommandInteraction, prelude::Context};
+use serenity::{
+    builder::CreateApplicationCommand,
+    model::prelude::application_command::ApplicationCommandInteraction, prelude::Context,
+};
+use xp_db_connector::{user::User, user_background::UserBackground, guild_member::GuildMember};
 
-use crate::{api::{user::{get_user_by_id, get_user_background_by_id}, guild::get_guild_member_by_id}, utils::imggen::generate_ranking_card};
+use crate::utils::imggen::generate_ranking_card;
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     command
@@ -23,14 +27,23 @@ pub async fn exec(_ctx: Context, command: ApplicationCommandInteraction) {
             if let Some(user) = Some(option.value.as_ref().unwrap().clone()) {
                 user_id = user.as_str().unwrap().parse::<u64>().unwrap();
             }
-        },
+        }
         None => {}
     }
 
-    let user = get_user_by_id(user_id).await.unwrap();
-    let guild_member = get_guild_member_by_id(command.guild_id.unwrap().0, user_id).await.unwrap();
-    let background = get_user_background_by_id(user_id).await.unwrap();
+    let user: User = User::from_id(user_id).await.unwrap();
+    let guild_member: GuildMember = GuildMember::from_id(command.guild_id.unwrap().0, user_id)
+        .await
+        .unwrap();
+    let background: Option<UserBackground> = match UserBackground::from_id(user_id).await {
+        Ok(background) => Some(background),
+        Err(_) => None,
+    };
+
+    log::info!("{:?}", user);
+    log::info!("{:?}", guild_member);
+    log::info!("{:?}", background);
 
     // TODO: pass user, guild_member and background to generate_ranking_card()
-    generate_ranking_card();
+    let _ = generate_ranking_card();
 }
