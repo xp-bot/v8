@@ -1,26 +1,29 @@
-use std::{env, time::Duration};
-
 use events::handler::Handler;
-use serenity::{client::bridge::gateway::GatewayIntents, Client};
+use log::{error, info};
+use serenity::{Client, prelude::GatewayIntents};
+use std::{env, time::Duration};
 use tokio::time::sleep;
 
+mod commands;
 mod events;
+mod utils;
+mod api;
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().expect("Failed to read .env file");
+    env_logger::init();
 
     // client initialization
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
-    let mut client = Client::builder(&token)
+    let mut client = Client::builder(&token, 
+        GatewayIntents::non_privileged()
+            | GatewayIntents::GUILD_MEMBERS
+            | GatewayIntents::GUILD_MESSAGES
+            | GatewayIntents::GUILDS,
+    )
         .event_handler(Handler)
-        .intents(
-            GatewayIntents::non_privileged()
-                | GatewayIntents::GUILD_MEMBERS
-                | GatewayIntents::GUILD_MESSAGES
-                | GatewayIntents::GUILDS,
-        )
         .await
         .expect("Err creating client");
 
@@ -36,20 +39,20 @@ async fn main() {
 
             for (id, runner) in shard_runners.iter() {
                 if runner.latency.is_some() {
-                    println!(
-                        "Shard ID {} is {:?} ({:?})",
+                    info!(
+                        "Shard {} is {:?} ({:?} latency)",
                         id.0 + 1,
                         runner.stage,
                         runner.latency.unwrap()
                     );
                 } else {
-                    println!("Shard ID {} is {:?}", id.0 + 1, runner.stage);
+                    info!("Shard {} is {:?}", id.0 + 1, runner.stage);
                 }
             }
         }
     });
 
     if let Err(why) = client.start_autosharded().await {
-        println!("Client error: {:?}", why);
+        error!("Client error: {:?}", why);
     }
 }

@@ -7,15 +7,21 @@ edition = "2021"
 
 [dependencies]
 dotenv = "0.15.0"
-serenity = { version = "0.10", features = [
+env_logger = "0.10.0"
+image = "0.24.6"
+libmath = "0.2.1"
+log = "0.4.19"
+reqwest = "0.11.18"
+round = "0.1.2"
+serde = "1.0.180"
+serenity = { version = "0.11.6", features = [
     "builder",
-    "cache",
     "client",
     "gateway",
     "http",
     "model",
     "utils",
-    "voice",
     "rustls_backend",
+    "cache",
 ], default-features = false }
 tokio = { version = "1", features = ["full"] }
