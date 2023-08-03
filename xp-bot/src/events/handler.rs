@@ -31,15 +31,13 @@ impl EventHandler for Handler {
         info!("Cache is ready!");
 
         // register slash commands
+        
         for guild in guilds {
             let commands = GuildId::set_application_commands(&guild, &ctx.http, |commands| {
+                for command in commands::COMMANDS {
+                    commands.create_application_command(|c| command.register(c));
+                }
                 commands
-                    .create_application_command(|command| {
-                        commands::misc::leaderboard::register(command)
-                    })
-                    .create_application_command(|command| commands::misc::about::register(command))
-                    .create_application_command(|command| commands::misc::level::register(command))
-                    .create_application_command(|command| commands::misc::rank::register(command))
             })
             .await;
 
@@ -54,16 +52,18 @@ impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         // handle slash commands
         if let Interaction::ApplicationCommand(command) = interaction {
-            match command.data.name.as_str() {
-                "leaderboard" => commands::misc::leaderboard::exec(ctx, command).await,
-                "about" => commands::misc::about::exec(ctx, command).await,
-                "level" => commands::misc::level::exec(ctx, command).await,
-                "rank" => commands::misc::rank::exec(ctx, command).await,
-                _ => {
-                    error!("Received unknown command: {:?}", command);
+            let command_name = command.data.name.as_str();
+            
+            for cmd in commands::COMMANDS {
+                if cmd.name() == command_name {
+                    cmd.exec(&ctx, &command).await;
+                    info!("Ran command: {:?}", command_name);
                     return ();
                 }
-            };
+            }
+
+            error!("Received unknown command: {:?}", command_name);
+            ()
         }
     }
 }

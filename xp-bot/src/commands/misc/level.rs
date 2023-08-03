@@ -1,5 +1,6 @@
 use log::error;
 use serenity::{
+    async_trait,
     builder::{CreateApplicationCommand, CreateEmbed},
     model::{
         application::command::CommandOptionType,
@@ -8,40 +9,55 @@ use serenity::{
     prelude::Context,
 };
 
-use crate::utils::{math::get_required_xp, colors};
+use crate::{
+    commands::XpCommand,
+    utils::{colors, math::get_required_xp},
+};
 use xp_db_connector::guild_member::GuildMember;
 
-pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-    command
-        .name("level")
-        .description("Check how much xp is required to reach a specific level.")
-        .create_option(|option| {
-            option
-                .name("level")
-                .description("The level you want to check.")
-                .kind(CommandOptionType::Integer)
-                .required(true)
-        })
-}
+pub struct LevelCommand;
 
-pub async fn exec(ctx: Context, command: ApplicationCommandInteraction) {
-    let guild_member = GuildMember::from_id(command.guild_id.unwrap().0, command.user.id.0).await;
-
-    if guild_member.is_err() {
-        error!("Could not get guild member: {:?}", command.user.id.0);
-        return ();
+#[async_trait]
+impl XpCommand for LevelCommand {
+    fn name(&self) -> &'static str {
+        "level"
     }
-    let guild_member = guild_member.unwrap();
 
-    let level = command.data.options[0]
-        .value
-        .as_ref()
-        .unwrap()
-        .as_i64()
-        .unwrap() as i32;
-    let required_xp = get_required_xp(level);
+    fn register<'a>(
+        &self,
+        command: &'a mut CreateApplicationCommand,
+    ) -> &'a mut CreateApplicationCommand {
+        command
+            .name("level")
+            .description("Check how much xp is required to reach a specific level.")
+            .create_option(|option| {
+                option
+                    .name("level")
+                    .description("The level you want to check.")
+                    .kind(CommandOptionType::Integer)
+                    .required(true)
+            })
+    }
 
-    let result = command.create_interaction_response(&ctx.http, |response| {
+    async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) {
+        let guild_member =
+            GuildMember::from_id(command.guild_id.unwrap().0, command.user.id.0).await;
+
+        if guild_member.is_err() {
+            error!("Could not get guild member: {:?}", command.user.id.0);
+            return ();
+        }
+        let guild_member = guild_member.unwrap();
+
+        let level = command.data.options[0]
+            .value
+            .as_ref()
+            .unwrap()
+            .as_i64()
+            .unwrap() as i32;
+        let required_xp = get_required_xp(level);
+
+        let result = command.create_interaction_response(&ctx.http, |response| {
         response.interaction_response_data(|message| {
             message.embed(|embed: &mut CreateEmbed| {
                 embed.title(format!("Level {}", level)).description(format!(
@@ -55,7 +71,8 @@ pub async fn exec(ctx: Context, command: ApplicationCommandInteraction) {
         })
     }).await;
 
-    if let Err(why) = result {
-        error!("Could not respond to slash command: {:?}", why);
+        if let Err(why) = result {
+            error!("Could not respond to slash command: {:?}", why);
+        }
     }
 }
