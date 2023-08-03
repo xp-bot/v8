@@ -12,6 +12,7 @@ f.e.:
 feat(commands): add ping command
 fix(commands): fix ping command
 ```
+> Detailed examples, branch guide and more: [Convention Guide](https://dev.to/varbsan/a-simplified-convention-for-naming-branches-and-commits-in-git-il4)
 - Always create a new branch for your feature. When you're done, create a pull request to merge your branch into `dev`. `dev` will be merged into `master` when we're ready to release a new version.
 
 # Run the bot
