@@ -8,7 +8,8 @@ use serenity::{
     prelude::Context,
 };
 
-use crate::{api::guild::get_guild_member_by_id, utils::{math::get_required_xp, colors}};
+use crate::utils::{math::get_required_xp, colors};
+use xp_db_connector::guild_member::GuildMember;
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     command
@@ -24,7 +25,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
 }
 
 pub async fn exec(ctx: Context, command: ApplicationCommandInteraction) {
-    let guild_member = get_guild_member_by_id(command.guild_id.unwrap().0, command.user.id.0).await;
+    let guild_member = GuildMember::from_id(command.guild_id.unwrap().0, command.user.id.0).await;
 
     if guild_member.is_err() {
         error!("Could not get guild member: {:?}", command.user.id.0);

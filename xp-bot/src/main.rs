@@ -7,12 +7,11 @@ use tokio::time::sleep;
 mod commands;
 mod events;
 mod utils;
-mod api;
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().expect("Failed to read .env file");
-    env_logger::init();
+    env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
     // client initialization
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
