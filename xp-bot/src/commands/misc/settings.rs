@@ -375,7 +375,8 @@ impl XpCommand for SettingsCommand {
             "ignores" => {
                 option_value = "Ignores".to_string();
                 let mut ignoredroles = "There are currently no ignored roles set.".to_string();
-                let mut ignoredchannels = "There are currently no ignored channels set.".to_string();
+                let mut ignoredchannels =
+                    "There are currently no ignored channels set.".to_string();
                 let mut ignoredcategories =
                     "There are currently no ignored categories set.".to_string();
 
@@ -454,6 +455,19 @@ impl XpCommand for SettingsCommand {
         if let Err(why) = result {
             log::error!("Could not respond to command: {:?}", why);
         }
+
+        // check if user has manage_server permission
+        if !command.member.as_ref().unwrap().permissions.unwrap().manage_guild() {
+            return;
+        }
+
+        let _ = command
+            .create_followup_message(&ctx.http, |message| {
+                message
+                    .content(format!("You can edit these settings in the dashboard: https://xp-bot.net/servers/{}/{}", guild_id, option_value.to_ascii_lowercase()))
+                    .ephemeral(true)
+            })
+            .await;
     }
 }
 
