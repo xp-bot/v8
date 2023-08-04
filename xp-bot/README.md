@@ -18,9 +18,13 @@ fix(commands): fix ping command
 # Run the bot
 0. Create a `.env` file with the following content:
 ```env
-# Bot related
+# Bot
 DISCORD_TOKEN=
 WEBSITE=https://xp-bot.net
+
+# API
+API_AUTH=
+API_URL=http://namespace.media:3000
 
 # Config
 RUST_LOG=raeys
