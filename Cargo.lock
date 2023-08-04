@@ -2196,6 +2196,7 @@ dependencies = [
 name = "xp-bot"
 version = "0.1.0"
 dependencies = [
+ "base64 0.21.2",
  "dotenv",
  "env_logger",
  "image",

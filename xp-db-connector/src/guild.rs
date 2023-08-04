@@ -40,7 +40,6 @@ pub struct GuildValues {
 #[derive(Deserialize, Clone, Debug)]
 pub struct GuildModules {
     pub reactionxp: bool,
-    pub userrankingoverride: bool,
     pub maximumlevel: bool,
     pub autonick: bool,
     pub games: bool,
@@ -73,9 +72,9 @@ pub struct GuildIgnores {
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct GuildBoosts {
-    pub roles: Option<GuildBoostObject>,
-    pub channels: Option<GuildBoostObject>,
-    pub categories: Option<GuildBoostObject>,
+    pub roles: Vec<GuildBoostObject>,
+    pub channels: Vec<GuildBoostObject>,
+    pub categories: Option<Vec<GuildBoostObject>>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -87,7 +86,7 @@ pub struct GuildBoostObject {
 #[derive(Deserialize, Clone, Debug)]
 pub struct GuildLevelRoles {
     pub id: String,
-    pub level: u32,
+    pub level: i32,
 }
 
 #[derive(Deserialize, Clone, Debug)]
