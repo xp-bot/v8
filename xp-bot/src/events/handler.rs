@@ -57,7 +57,7 @@ impl EventHandler for Handler {
             for cmd in commands::COMMANDS {
                 if cmd.name() == command_name {
                     cmd.exec(&ctx, &command).await;
-                    info!("Ran command: {:?}", command_name);
+                    // info!("Ran command: {:?}", command_name);
                     return ();
                 }
             }

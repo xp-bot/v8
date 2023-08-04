@@ -15,4 +15,5 @@ pub const COMMANDS: &[&dyn XpCommand] = &[
     &misc::level::LevelCommand,
     &misc::rank::RankCommand,
     &misc::settings::SettingsCommand,
+    &misc::voicetime::VoicetimeCommand,
 ];
