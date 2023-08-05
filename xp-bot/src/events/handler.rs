@@ -31,7 +31,6 @@ impl EventHandler for Handler {
         info!("Cache is ready!");
 
         // register slash commands
-
         for guild in guilds {
             let commands = GuildId::set_application_commands(&guild, &ctx.http, |commands| {
                 for command in commands::COMMANDS {
@@ -72,7 +71,8 @@ impl EventHandler for Handler {
                                                     "An error occured while executing the command.\nIf this error persists, please join our [support server](https://discord.xp-bot.net).");
                                                 embed.color(colors::red());
                                                 embed
-                                            })                                         
+                                            });
+                                            message.ephemeral(true)            
                                         })
                                 })
                                 .await

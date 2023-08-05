@@ -45,3 +45,22 @@ pub fn calculate_total_boost_percentage(
 
     boost_percentage
 }
+
+pub fn format_number(number: u64) -> String {
+    let mut number = number.to_string();
+    let mut formatted_number = String::new();
+
+    while number.len() > 3 {
+        formatted_number = format!(
+            "{}{}",
+            number.split_off(number.len() - 3),
+            if formatted_number.is_empty() {
+                ""
+            } else {
+                ","
+            }
+        );
+    }
+
+    format!("{}{}", number, formatted_number)
+}

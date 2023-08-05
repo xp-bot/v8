@@ -164,7 +164,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Message xp: {}",
-                        guild.values.messagexp
+                        crate::utils::utils::format_number(guild.values.messagexp as u64)
                     ),
                     "The amount of xp a user gets per message.".to_string(),
                     true,
@@ -172,7 +172,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Message cooldown: {}",
-                        guild.values.messagecooldown
+                        crate::utils::utils::format_number(guild.values.messagecooldown as u64)
                     ),
                     "The time in seconds until the next message will be counted.".to_string(),
                     true,
@@ -180,7 +180,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Voice xp: {}",
-                        guild.values.voicexp
+                        crate::utils::utils::format_number(guild.values.voicexp as u64)
                     ),
                     "The amount of xp a user receives per minute in the voicechat.".to_string(),
                     true,
@@ -188,7 +188,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Voice Join Cooldown: {}",
-                        guild.values.voicejoincooldown
+                        crate::utils::utils::format_number(guild.values.voicejoincooldown as u64)
                     ),
                     "The time in seconds until XP starts measuring the user's voicechat time."
                         .to_string(),
@@ -197,15 +197,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Reaction xp: {}",
-                        guild.values.reactionxp
-                    ),
-                    "The amount of xp a user gets per reaction.".to_string(),
-                    true,
-                ));
-                fields.push((
-                    format!(
-                        "<:xp_logo_box:860148324622532628> Reaction xp: {}",
-                        guild.values.reactionxp
+                        crate::utils::utils::format_number(guild.values.reactionxp as u64)
                     ),
                     "The amount of xp a user gets per reaction.".to_string(),
                     true,
@@ -213,7 +205,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Loot xp: {}",
-                        guild.values.lootXP
+                        crate::utils::utils::format_number(guild.values.lootXP as u64)
                     ),
                     "The amount of xp a user gets for playing `/loot`.".to_string(),
                     true,
@@ -221,7 +213,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Fish xp: {}",
-                        guild.values.fishXP
+                        crate::utils::utils::format_number(guild.values.fishXP as u64)
                     ),
                     "The amount of xp a user gets for playing `/fish`.".to_string(),
                     true,
@@ -229,7 +221,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Roll xp: {}",
-                        guild.values.rollXP
+                        crate::utils::utils::format_number(guild.values.rollXP as u64)
                     ),
                     "The amount of xp a user gets for playing `/roll`.".to_string(),
                     true,
@@ -237,7 +229,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Game cooldown: {}",
-                        guild.values.gamecooldown
+                        crate::utils::utils::format_number(guild.values.gamecooldown as u64)
                     ),
                     format!(
                         "`{}` The time in seconds until a user start another game.",
@@ -248,7 +240,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Trivia xp: {}",
-                        guild.values.triviaxp
+                        crate::utils::utils::format_number(guild.values.triviaxp as u64)
                     ),
                     "The maximum amount of xp a user gets for playing trivia.".to_string(),
                     true,
@@ -256,7 +248,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Trivia cooldown: {}",
-                        guild.values.triviacooldown
+                        crate::utils::utils::format_number(guild.values.triviacooldown as u64)
                     ),
                     format!(
                         "`{}` The time in seconds until a user can start a new Trivia game.",
@@ -267,7 +259,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Maximum daily xp: {}",
-                        guild.values.maximumdailyxp
+                        crate::utils::utils::format_number(guild.values.maximumdailyxp as u64)
                     ),
                     "The maximum amount of xp obtainable by executing the `/daily` command."
                         .to_string(),
@@ -276,7 +268,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "<:xp_logo_box:860148324622532628> Maximum level: {}",
-                        guild.values.maximumlevel
+                        crate::utils::utils::format_number(guild.values.maximumlevel as u64)
                     ),
                     "The maximum level that can be reached.".to_string(),
                     true,
