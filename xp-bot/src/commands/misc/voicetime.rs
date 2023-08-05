@@ -37,7 +37,7 @@ impl XpCommand for VoicetimeCommand {
             })
     }
 
-    async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) {
+    async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let mut user_id = command.user.id.0;
 
         match command.data.options.first() {
@@ -49,7 +49,7 @@ impl XpCommand for VoicetimeCommand {
             None => {}
         }
 
-        let user = User::from_id(user_id).await.unwrap();
+        let user = User::from_id(user_id).await?;
 
         let guild_member = GuildMember::from_id(command.guild_id.unwrap().0, user_id)
             .await
@@ -71,7 +71,7 @@ impl XpCommand for VoicetimeCommand {
                     .await
                     .unwrap();
 
-                return;
+                return Ok(());
             }
         };
 
@@ -81,7 +81,7 @@ impl XpCommand for VoicetimeCommand {
             .guild(command.guild_id.unwrap())
             .unwrap()
             .voice_states
-            .get(&ctx.http.get_user(user_id).await.unwrap().id)
+            .get(&ctx.http.get_user(user_id).await?.id)
         {
             Some(state) => Some(state.clone()),
             None => {
@@ -95,13 +95,13 @@ impl XpCommand for VoicetimeCommand {
                     })
                     .await
                     .unwrap();
-                return;
+                return Ok(());
             }
         };
 
         let current_timestamp = chrono::Utc::now().timestamp() * 1000;
 
-        let guild = Guild::from_id(command.guild_id.unwrap().0).await.unwrap();
+        let guild = Guild::from_id(command.guild_id.unwrap().0).await?;
 
         let voice_xp = calculate_xp_from_voice_time(
             last_timestamp,
@@ -139,7 +139,7 @@ impl XpCommand for VoicetimeCommand {
             format!("**{}** seconds", seconds)
         };
 
-        let result = command
+        let _ = command
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -167,10 +167,8 @@ impl XpCommand for VoicetimeCommand {
                         })
                     })
             })
-            .await;
+            .await?;
 
-        if let Err(why) = result {
-            println!("Error sending voicetime response: {:?}", why);
-        }
+        Ok(())
     }
 }

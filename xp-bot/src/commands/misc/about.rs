@@ -1,4 +1,3 @@
-use log::error;
 use serenity::{
     builder::{CreateApplicationCommand, CreateEmbed},
     model::prelude::{application_command::ApplicationCommandInteraction, InteractionResponseType, component::ButtonStyle, ReactionType},
@@ -21,8 +20,8 @@ impl XpCommand for AboutCommand {
         .description("Get every info about the bot.")
     }
 
-    async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) {
-        let result = command.create_interaction_response(&ctx.http, |response| {
+    async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let _ = command.create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
                 .interaction_response_data(|message| {
@@ -66,10 +65,8 @@ impl XpCommand for AboutCommand {
                             )
                     )
                 })
-        }).await;
-    
-        if let Err(why) = result {
-            error!("Could not respond to command: {:?}", why);
-        }
+        }).await?;
+
+        Ok(())
     }
 }

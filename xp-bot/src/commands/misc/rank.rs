@@ -29,7 +29,7 @@ impl XpCommand for RankCommand {
             })
     }
 
-    async fn exec(&self, _ctx: &Context, command: &ApplicationCommandInteraction) {
+    async fn exec(&self, _ctx: &Context, command: &ApplicationCommandInteraction) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let mut _user_id = command.user.id.0;
 
         match command.data.options.first() {
@@ -42,5 +42,7 @@ impl XpCommand for RankCommand {
         }
 
         // request to local api
+
+        Ok(())
     }
 }

@@ -37,7 +37,7 @@ impl XpCommand for SettingsCommand {
             })
     }
 
-    async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) {
+    async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let guild_id = command.guild_id.unwrap();
         let option = command.data.options[0].clone();
 
@@ -45,10 +45,10 @@ impl XpCommand for SettingsCommand {
             Ok(guild) => guild,
             Err(why) => {
                 log::error!("Could not get guild: {:?}", why);
-                return;
+                return Ok(());
             }
         };
-        let guild_premium = GuildPremium::from_id(guild_id.into()).await.unwrap();
+        let guild_premium = GuildPremium::from_id(guild_id.into()).await?;
 
         let mut fields: Vec<(String, String, bool)> = Vec::new();
 
@@ -458,7 +458,7 @@ impl XpCommand for SettingsCommand {
 
         // check if user has manage_server permission
         if !command.member.as_ref().unwrap().permissions.unwrap().manage_guild() {
-            return;
+            return Ok(());
         }
 
         let _ = command
@@ -467,7 +467,9 @@ impl XpCommand for SettingsCommand {
                     .content(format!("You can edit these settings in the dashboard: https://xp-bot.net/servers/{}/{}", guild_id, option_value.to_ascii_lowercase()))
                     .ephemeral(true)
             })
-            .await;
+            .await?;
+
+        Ok(())
     }
 }
 
