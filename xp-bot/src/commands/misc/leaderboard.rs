@@ -1,4 +1,3 @@
-use log::error;
 use serenity::{
     async_trait,
     builder::CreateApplicationCommand,
@@ -28,19 +27,21 @@ impl XpCommand for LeaderboardCommand {
             .description("Check who's most active on this server.")
     }
 
-    async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) {
+    async fn exec(
+        &self,
+        ctx: &Context,
+        command: &ApplicationCommandInteraction,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let url = format!("https://xp-bot.net/lb/{}", command.guild_id.unwrap().0);
 
-        let result = command
+        let _ = command
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
                     .interaction_response_data(|message| message.content(url))
             })
-            .await;
+            .await?;
 
-        if let Err(why) = result {
-            error!("Could not respond to command: {:?}", why);
-        }
+        Ok(())
     }
 }

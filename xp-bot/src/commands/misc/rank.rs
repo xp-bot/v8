@@ -1,10 +1,11 @@
 use serenity::{
-    async_trait, builder::CreateApplicationCommand,
-    model::prelude::application_command::ApplicationCommandInteraction, prelude::Context,
+    async_trait,
+    builder::CreateApplicationCommand,
+    model::prelude::{application_command::ApplicationCommandInteraction, InteractionResponseType},
+    prelude::Context,
 };
-use xp_db_connector::{guild_member::GuildMember, user::User, user_background::UserBackground};
 
-use crate::{commands::XpCommand, utils::imggen::generate_ranking_card};
+use crate::commands::XpCommand;
 
 pub struct RankCommand;
 
@@ -30,32 +31,37 @@ impl XpCommand for RankCommand {
             })
     }
 
-    async fn exec(&self, _ctx: &Context, command: &ApplicationCommandInteraction) {
-        let mut user_id = command.user.id.0;
+    async fn exec(
+        &self,
+        ctx: &Context,
+        command: &ApplicationCommandInteraction,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let mut _user_id = command.user.id.0;
 
         match command.data.options.first() {
             Some(option) => {
                 if let Some(user) = Some(option.value.as_ref().unwrap().clone()) {
-                    user_id = user.as_str().unwrap().parse::<u64>().unwrap();
+                    _user_id = user.as_str().unwrap().parse::<u64>().unwrap();
                 }
             }
             None => {}
         }
 
-        let user: User = User::from_id(user_id).await.unwrap();
-        let guild_member: GuildMember = GuildMember::from_id(command.guild_id.unwrap().0, user_id)
-            .await
-            .unwrap();
-        let background: Option<UserBackground> = match UserBackground::from_id(user_id).await {
-            Ok(background) => Some(background),
-            Err(_) => None,
-        };
+        command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        message.content(format!(
+                            "http://namespace.media:3000/guild/{}/member/{}/background/render?cache={}",
+                            command.guild_id.unwrap().0,
+                            _user_id,
+                            chrono::Utc::now().timestamp()
+                        ))
+                    })
+            })
+            .await?;
 
-        log::info!("{:?}", user);
-        log::info!("{:?}", guild_member);
-        log::info!("{:?}", background);
-
-        // TODO: pass user, guild_member and background to generate_ranking_card()
-        let _ = generate_ranking_card();
+        Ok(())
     }
 }

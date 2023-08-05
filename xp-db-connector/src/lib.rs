@@ -1,6 +1,8 @@
 pub mod user;
 pub mod user_background;
 pub mod guild_member;
+pub mod guild;
+pub mod guild_premium;
 
 use std::env;
 

@@ -39,15 +39,19 @@ impl XpCommand for LevelCommand {
             })
     }
 
-    async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) {
+    async fn exec(
+        &self,
+        ctx: &Context,
+        command: &ApplicationCommandInteraction,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let guild_member =
             GuildMember::from_id(command.guild_id.unwrap().0, command.user.id.0).await;
 
         if guild_member.is_err() {
             error!("Could not get guild member: {:?}", command.user.id.0);
-            return ();
+            return Ok(());
         }
-        let guild_member = guild_member.unwrap();
+        let guild_member = guild_member?;
 
         let level = command.data.options[0]
             .value
@@ -57,7 +61,7 @@ impl XpCommand for LevelCommand {
             .unwrap() as i32;
         let required_xp = get_required_xp(level);
 
-        let result = command.create_interaction_response(&ctx.http, |response| {
+        let _ = command.create_interaction_response(&ctx.http, |response| {
         response.interaction_response_data(|message| {
             message.embed(|embed: &mut CreateEmbed| {
                 embed.title(format!("Level {}", level)).description(format!(
@@ -69,10 +73,8 @@ impl XpCommand for LevelCommand {
                 )).color(colors::blue())
             })
         })
-    }).await;
+    }).await?;
 
-        if let Err(why) = result {
-            error!("Could not respond to slash command: {:?}", why);
-        }
+        Ok(())
     }
 }

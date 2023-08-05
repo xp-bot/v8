@@ -1,11 +1,11 @@
 use log::{error, info};
 use serenity::{
     async_trait,
-    model::prelude::{Activity, GuildId, Interaction, Ready},
+    model::prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready},
     prelude::{Context, EventHandler},
 };
 
-use crate::commands;
+use crate::{commands, utils::colors};
 
 pub struct Handler;
 
@@ -31,7 +31,7 @@ impl EventHandler for Handler {
         info!("Cache is ready!");
 
         // register slash commands
-        
+
         for guild in guilds {
             let commands = GuildId::set_application_commands(&guild, &ctx.http, |commands| {
                 for command in commands::COMMANDS {
@@ -53,11 +53,33 @@ impl EventHandler for Handler {
         // handle slash commands
         if let Interaction::ApplicationCommand(command) = interaction {
             let command_name = command.data.name.as_str();
-            
+
             for cmd in commands::COMMANDS {
                 if cmd.name() == command_name {
-                    cmd.exec(&ctx, &command).await;
-                    info!("Ran command: {:?}", command_name);
+                    let result = cmd.exec(&ctx, &command).await;
+
+                    match result {
+                        Ok(_) => {}
+                        Err(why) => {
+                            command
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response
+                                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                                        .interaction_response_data(|message| {
+                                            message.embed(|embed| {
+                                                embed.title("Error");
+                                                embed.description(
+                                                    "An error occured while executing the command.\nIf this error persists, please join our [support server](https://discord.xp-bot.net).");
+                                                embed.color(colors::red());
+                                                embed
+                                            })                                         
+                                        })
+                                })
+                                .await
+                                .unwrap();
+                            error!("Could not execute command: {:?}", why);
+                        }
+                    }
                     return ();
                 }
             }

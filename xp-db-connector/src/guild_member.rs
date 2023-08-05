@@ -35,7 +35,6 @@ pub struct GuildMemberSettings {
 #[derive(Deserialize, Clone, Debug)]
 pub struct GuildMemberTimestamps {
     pub message_cooldown: Option<u64>,
-    pub join_voicechat: Option<u64>,
     pub game_trivia: Option<u64>,
     pub game_daily: Option<u64>,
     pub game_fish: Option<u64>,
