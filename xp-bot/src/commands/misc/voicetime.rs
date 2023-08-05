@@ -10,6 +10,7 @@ use crate::{
     utils::{
         colors,
         math::{calculate_level, calculate_xp_from_voice_time},
+        utils,
     },
 };
 
@@ -37,7 +38,11 @@ impl XpCommand for VoicetimeCommand {
             })
     }
 
-    async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn exec(
+        &self,
+        ctx: &Context,
+        command: &ApplicationCommandInteraction,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let mut user_id = command.user.id.0;
 
         match command.data.options.first() {
@@ -103,11 +108,42 @@ impl XpCommand for VoicetimeCommand {
 
         let guild = Guild::from_id(command.guild_id.unwrap().0).await?;
 
+        let boost_percentage = utils::calculate_total_boost_percentage(
+            guild.clone(),
+            &command.member.as_ref().unwrap().roles,
+            ctx.cache
+                .guild(command.guild_id.unwrap())
+                .unwrap()
+                .voice_states
+                .get(&ctx.http.get_user(user_id).await?.id)
+                .unwrap()
+                .channel_id
+                .unwrap()
+                .0,
+            ctx.cache
+                .guild_channel(
+                    ctx.cache
+                        .guild(command.guild_id.unwrap())
+                        .unwrap()
+                        .voice_states
+                        .get(&ctx.http.get_user(user_id).await?.id)
+                        .unwrap()
+                        .channel_id
+                        .unwrap()
+                        .0,
+                )
+                .unwrap()
+                .parent_id,
+        );
+
+        log::info!("Boost percentage: {}", boost_percentage);
+
         let voice_xp = calculate_xp_from_voice_time(
             last_timestamp,
             current_timestamp,
             guild.values.voicexp,
             guild.values.voicejoincooldown,
+            boost_percentage,
         );
 
         let current_level = calculate_level(guild_member.xp);
