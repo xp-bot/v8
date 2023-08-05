@@ -1,6 +1,8 @@
 use serenity::{
-    async_trait, builder::CreateApplicationCommand,
-    model::prelude::application_command::ApplicationCommandInteraction, prelude::Context,
+    async_trait,
+    builder::CreateApplicationCommand,
+    model::prelude::{application_command::ApplicationCommandInteraction, InteractionResponseType},
+    prelude::Context,
 };
 
 use crate::commands::XpCommand;
@@ -29,7 +31,11 @@ impl XpCommand for RankCommand {
             })
     }
 
-    async fn exec(&self, _ctx: &Context, command: &ApplicationCommandInteraction) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn exec(
+        &self,
+        ctx: &Context,
+        command: &ApplicationCommandInteraction,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let mut _user_id = command.user.id.0;
 
         match command.data.options.first() {
@@ -41,7 +47,20 @@ impl XpCommand for RankCommand {
             None => {}
         }
 
-        // request to local api
+        command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        message.content(format!(
+                            "http://namespace.media:3000/guild/{}/member/{}/background/render?cache={}",
+                            command.guild_id.unwrap().0,
+                            _user_id,
+                            chrono::Utc::now().timestamp()
+                        ))
+                    })
+            })
+            .await?;
 
         Ok(())
     }
