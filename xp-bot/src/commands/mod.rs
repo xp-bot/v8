@@ -23,4 +23,5 @@ pub const COMMANDS: &[&dyn XpCommand] = &[
     &admin::set::SetCommand,
     &admin::remove::RemoveCommand,
     &admin::reset::ResetCommand,
+    &admin::setlevel::SetLevelCommand,
 ];

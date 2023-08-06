@@ -12,14 +12,17 @@ use serenity::{
 };
 use xp_db_connector::guild_member::GuildMember;
 
-use crate::{commands::XpCommand, utils::{colors, utils::format_number}};
+use crate::{
+    commands::XpCommand,
+    utils::{colors, math::get_required_xp},
+};
 
-pub struct SetCommand;
+pub struct SetLevelCommand;
 
 #[async_trait]
-impl XpCommand for SetCommand {
+impl XpCommand for SetLevelCommand {
     fn name(&self) -> &'static str {
-        "setxp"
+        "setlevel"
     }
 
     fn register<'a>(
@@ -27,19 +30,19 @@ impl XpCommand for SetCommand {
         command: &'a mut CreateApplicationCommand,
     ) -> &'a mut CreateApplicationCommand {
         command
-            .name("setxp")
-            .description("Set xp of a specified user.")
+            .name("setlevel")
+            .description("Set the level of a specified user.")
             .create_option(|option| {
                 option
                     .name("user")
-                    .description("The user you set the xp amount of.")
+                    .description("The user you set the level of.")
                     .kind(CommandOptionType::User)
                     .required(true)
             })
             .create_option(|option| {
                 option
-                    .name("amount")
-                    .description("The amount of xp you want to set.")
+                    .name("level")
+                    .description("The level you want to set.")
                     .kind(CommandOptionType::Integer)
                     .required(true)
                     .min_int_value(1)
@@ -52,7 +55,7 @@ impl XpCommand for SetCommand {
         ctx: &Context,
         command: &ApplicationCommandInteraction,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let user = command
+        let user_id = command
             .data
             .options
             .first()
@@ -60,42 +63,51 @@ impl XpCommand for SetCommand {
             .value
             .as_ref()
             .unwrap()
-            .clone()
             .as_str()
             .unwrap()
             .parse::<u64>()
             .unwrap();
 
-        let amount = command.data.options[1]
+        let level = command
+            .data
+            .options
+            .last()
+            .unwrap()
             .value
             .as_ref()
             .unwrap()
-            .clone()
             .as_i64()
-            .unwrap() as u64;
+            .unwrap();
 
-        let guild_id = command.guild_id.unwrap().0;
+        let required_xp = get_required_xp(level as i32);
 
-        let guild_member = GuildMember::from_id(guild_id, user).await?;
+        let guild_member = GuildMember::from_id(command.guild_id.unwrap().into(), user_id).await?;
+        let _ = GuildMember::set_xp(
+            command.guild_id.unwrap().into(),
+            user_id,
+            required_xp as u64,
+            guild_member,
+        )
+        .await?;
 
-        let _ = GuildMember::set_xp(guild_id, user, amount, guild_member).await?;
-
-        command
+        let _ = command
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
                     .interaction_response_data(|message| {
-                        message.embed(|embed| {
-                            embed.description(format!(
-                                "Successfully set xp of <@{}> to {}.",
-                                user, format_number(amount as u64)
-                            ));
-                            embed.color(colors::green());
-                            embed
-                        })
+                        message
+                            .embed(|embed| {
+                                embed.description(format!(
+                                    "Set the level of <@{}> to {}.",
+                                    user_id, level
+                                ));
+                                embed.color(colors::green())
+                            })
+                            .ephemeral(true);
+                        message
                     })
             })
-            .await?;
+            .await;
 
         Ok(())
     }

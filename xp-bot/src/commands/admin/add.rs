@@ -12,7 +12,7 @@ use serenity::{
 };
 use xp_db_connector::guild_member::GuildMember;
 
-use crate::{commands::XpCommand, utils::colors};
+use crate::{commands::XpCommand, utils::{colors, utils::format_number}};
 
 pub struct AddCommand;
 
@@ -90,7 +90,7 @@ impl XpCommand for AddCommand {
                         message.embed(|embed| {
                             embed.description(format!(
                                 "Successfully added {} xp to <@{}>.",
-                                amount, user
+                                format_number(amount as u64), user
                             ));
                             embed.color(colors::green());
                             embed
