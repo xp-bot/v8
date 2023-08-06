@@ -7,7 +7,7 @@ use serenity::{
     },
     prelude::Context,
 };
-use xp_db_connector::guild_member::{self, GuildMember};
+use xp_db_connector::guild_member::GuildMember;
 
 use crate::{commands::XpCommand, utils::colors};
 
