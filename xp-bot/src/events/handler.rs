@@ -156,8 +156,6 @@ impl EventHandler for Handler {
                         .first()
                         .unwrap());
 
-                    log::info!("{:?}", experimental_extract);
-
                     // extract user id from experimental_extract
                     let user_id = experimental_extract.split("custom_id: \"reset_user_xp_input_").collect::<Vec<&str>>()[1].split("\"").collect::<Vec<&str>>()[0].parse::<u64>().unwrap();
                     
