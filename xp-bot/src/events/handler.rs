@@ -4,6 +4,7 @@ use serenity::{
     model::prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready},
     prelude::{Context, EventHandler},
 };
+use xp_db_connector::{guild::Guild, guild_member::GuildMember};
 
 use crate::{commands, utils::colors};
 
@@ -60,7 +61,9 @@ impl EventHandler for Handler {
                     match result {
                         Ok(_) => {}
                         Err(why) => {
-                            command
+                            log::error!("Could not execute command: {:?}", why);
+
+                            let cmd = command
                                 .create_interaction_response(&ctx.http, |response| {
                                     response
                                         .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -75,9 +78,11 @@ impl EventHandler for Handler {
                                             message.ephemeral(true)            
                                         })
                                 })
-                                .await
-                                .unwrap();
-                            error!("Could not execute command: {:?}", why);
+                                .await;
+
+                            if let Err(why) = cmd {
+                                error!("Could not execute command: {:?}", why);
+                            }
                         }
                     }
                     return ();
@@ -86,6 +91,100 @@ impl EventHandler for Handler {
 
             error!("Received unknown command: {:?}", command_name);
             ()
+        } else if let Interaction::ModalSubmit(command) = interaction {
+            let modal_data = command.data.clone();
+
+            match modal_data.custom_id.as_str() {
+                "reset_community_settings" => {
+                    let guild_id = command.guild_id.unwrap();
+
+                    let action = Guild::delete(&guild_id.0).await;
+
+                    if action.is_err() {
+                        error!("Could not reset community settings: {:?}", action.err());
+                        return;
+                    }
+                    
+                    command.create_interaction_response(&ctx.http, |response| {
+                        response
+                            .kind(InteractionResponseType::ChannelMessageWithSource)
+                            .interaction_response_data(|message| {
+                                message.embed(|embed| {
+                                    embed.description(
+                                        "Successfully reset community settings.");
+                                    embed.color(colors::green());
+                                    embed
+                                });
+                                message.ephemeral(true)            
+                            })
+                    })
+                    .await.unwrap();
+                    
+                }
+                "reset_community_xp" => {
+                    let guild_id = command.guild_id.unwrap();
+
+                    let action = Guild::delete_xp(&guild_id.0).await;
+
+                    if action.is_err() {
+                        error!("Could not reset community xp: {:?}", action.err());
+                        return;
+                    }
+                    
+                    command.create_interaction_response(&ctx.http, |response| {
+                        response
+                            .kind(InteractionResponseType::ChannelMessageWithSource)
+                            .interaction_response_data(|message| {
+                                message.embed(|embed| {
+                                    embed.description(
+                                        "Successfully reset community xp.");
+                                    embed.color(colors::green());
+                                    embed
+                                });
+                                message.ephemeral(true)            
+                            })
+                    })
+                    .await.unwrap();
+                }
+                "reset_user_xp" => {
+                    let experimental_extract = format!("{:?}", command
+                        .data
+                        .components
+                        .first()
+                        .unwrap()
+                        .components
+                        .first()
+                        .unwrap());
+
+                    log::info!("{:?}", experimental_extract);
+
+                    // extract user id from experimental_extract
+                    let user_id = experimental_extract.split("custom_id: \"reset_user_xp_input_").collect::<Vec<&str>>()[1].split("\"").collect::<Vec<&str>>()[0].parse::<u64>().unwrap();
+                    
+                    let guild_member = GuildMember::from_id(command.guild_id.unwrap().0, user_id).await.unwrap();
+                    let res = GuildMember::set_xp(command.guild_id.unwrap().0, user_id, 0, guild_member).await.unwrap();
+
+                    if res.is_err() {
+                        error!("Could not reset user xp: {:?}", res.err());
+                        return;
+                    }
+
+                    command.create_interaction_response(&ctx.http, |response| {
+                        response
+                            .kind(InteractionResponseType::ChannelMessageWithSource)
+                            .interaction_response_data(|message| {
+                                message.embed(|embed| {
+                                    embed.description(
+                                        "Successfully reset user xp.");
+                                    embed.color(colors::green());
+                                    embed
+                                });
+                                message.ephemeral(true)            
+                            })
+                    }).await.unwrap();
+                }
+                _ => {}
+            };
         }
     }
 }

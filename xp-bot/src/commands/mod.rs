@@ -3,6 +3,7 @@ use std::error::Error;
 use serenity::{async_trait, builder::CreateApplicationCommand, prelude::Context, model::prelude::application_command::ApplicationCommandInteraction};
 
 pub mod misc;
+pub mod admin;
 
 #[async_trait]
 pub trait XpCommand: Send + Sync {
@@ -18,4 +19,8 @@ pub const COMMANDS: &[&dyn XpCommand] = &[
     &misc::rank::RankCommand,
     &misc::settings::SettingsCommand,
     &misc::voicetime::VoicetimeCommand,
+    &admin::add::AddCommand,
+    &admin::set::SetCommand,
+    &admin::remove::RemoveCommand,
+    &admin::reset::ResetCommand,
 ];

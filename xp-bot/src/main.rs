@@ -22,6 +22,7 @@ async fn main() {
             | GatewayIntents::GUILD_MESSAGES
             | GatewayIntents::GUILDS
             | GatewayIntents::GUILD_VOICE_STATES
+            | GatewayIntents::MESSAGE_CONTENT
     )
         .event_handler(Handler)
         .await

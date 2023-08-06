@@ -53,7 +53,7 @@ impl XpCommand for RankCommand {
                     .kind(InteractionResponseType::ChannelMessageWithSource)
                     .interaction_response_data(|message| {
                         message.content(format!(
-                            "http://namespace.media:3000/guild/{}/member/{}/background/render?cache={}",
+                            "https://bot-api.xp-bot.net/rank/{}/{}?cache={}",
                             command.guild_id.unwrap().0,
                             _user_id,
                             chrono::Utc::now().timestamp()
