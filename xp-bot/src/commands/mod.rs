@@ -4,6 +4,7 @@ use serenity::{async_trait, builder::CreateApplicationCommand, prelude::Context,
 
 pub mod misc;
 pub mod admin;
+pub mod games;
 
 #[async_trait]
 pub trait XpCommand: Send + Sync {
@@ -26,4 +27,5 @@ pub const COMMANDS: &[&dyn XpCommand] = &[
     &admin::reset::ResetCommand,
     &admin::setlevel::SetLevelCommand,
     &admin::setstreak::SetStreakCommand,
+    &games::fish::FishCommand,
 ];

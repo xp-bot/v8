@@ -1,5 +1,7 @@
 use serenity::model::prelude::{ChannelId, RoleId};
-use xp_db_connector::guild::Guild;
+use xp_db_connector::{guild::Guild, user::User};
+
+use super::topgg;
 
 pub fn calculate_total_boost_percentage(
     guild: Guild,
@@ -54,13 +56,33 @@ pub fn format_number(number: u64) -> String {
         formatted_number = format!(
             "{}{}",
             number.split_off(number.len() - 3),
-            if formatted_number.is_empty() {
-                ""
-            } else {
-                ","
-            }
+            if formatted_number.is_empty() { "" } else { "," }
         );
     }
 
     format!("{}{}", number, formatted_number)
+}
+
+pub async fn eligibility_helper(user_id: u64) -> bool {
+    let user = User::is_premium(user_id).await.unwrap_or(false);
+
+    if user {
+        return true;
+    }
+
+    let voted = topgg::check_user_vote(&user_id).await;
+
+    if voted {
+        return true;
+    }
+
+    false
+}
+
+pub fn is_cooldowned(timestamp_now: u64, timestamp_then: u64, cooldown: u64) -> bool {
+    if timestamp_now - timestamp_then < cooldown {
+        return true;
+    }
+
+    false
 }

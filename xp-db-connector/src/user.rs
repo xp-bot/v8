@@ -42,6 +42,23 @@ pub struct UserSettingsBackground {
     pub canvas: bool,
 }
 
+#[derive(Deserialize, Clone, Debug)]
+pub struct UserPremiumResponse {
+    pub success: bool,
+    pub message: String,
+    pub content: Option<UserPremium>,
+}
+
+#[allow(non_snake_case)]
+#[derive(Deserialize, Clone, Debug)]
+pub struct UserPremium {
+    pub userPremium: bool,
+    pub serverPremium: u32,
+    pub servers: Vec<String>,
+    pub voteFreeCount: u32,
+    pub voteFreeServers: Vec<String>,
+}
+
 impl User {
     pub async fn from_id(user_id: u64) -> DbResult<User> {
         let response = crate::get_json::<UserResponse>(format!("/user/{}", user_id)).await?;
@@ -50,6 +67,16 @@ impl User {
             Ok(response.content.unwrap())
         } else {
             Err(format!("Failed to get user: {}", response.message).into())
+        }
+    }
+
+    pub async fn is_premium(user_id: u64) -> DbResult<bool> {
+        let response = crate::get_json::<UserPremiumResponse>(format!("/user/{}/premium", user_id)).await?;
+
+        if response.success && response.content.is_some() {
+            Ok(response.content.unwrap().userPremium)
+        } else {
+            Err(format!("Failed to get user premium: {}", response.message).into())
         }
     }
 }
