@@ -93,7 +93,8 @@ impl XpCommand for RemoveCommand {
                             ));
                             embed.color(colors::green());
                             embed
-                        })
+                        }).ephemeral(true);
+                        message
                     })
             })
             .await?;

@@ -92,7 +92,8 @@ impl XpCommand for SetCommand {
                             ));
                             embed.color(colors::green());
                             embed
-                        })
+                        }).ephemeral(true);
+                        message
                     })
             })
             .await?;

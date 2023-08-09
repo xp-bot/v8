@@ -94,7 +94,8 @@ impl XpCommand for AddCommand {
                             ));
                             embed.color(colors::green());
                             embed
-                        })
+                        }).ephemeral(true);
+                        message
                     })
             })
             .await?;
