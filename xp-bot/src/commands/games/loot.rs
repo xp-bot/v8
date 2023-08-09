@@ -10,24 +10,24 @@ use crate::{
     commands::XpCommand,
     utils::{
         colors,
-        utils::{eligibility_helper, is_cooldowned, format_number},
+        utils::{eligibility_helper, format_number, is_cooldowned},
     },
 };
 use rand::Rng;
 
-pub struct FishCommand;
+pub struct LootCommand;
 
 #[async_trait]
-impl XpCommand for FishCommand {
+impl XpCommand for LootCommand {
     fn name(&self) -> &'static str {
-        "fish"
+        "loot"
     }
 
     fn register<'a>(
         &self,
         command: &'a mut CreateApplicationCommand,
     ) -> &'a mut CreateApplicationCommand {
-        command.name("fish").description("Go fishing and find out!")
+        command.name("loot").description("Loot random crates!")
     }
 
     async fn exec(
@@ -87,7 +87,9 @@ impl XpCommand for FishCommand {
 
         // check cooldowns
         let time_now = chrono::Utc::now().timestamp() * 1000;
-        let timestamp = guild_member.timestamps.game_fish.unwrap_or(0);
+
+        let timestamp = guild_member.timestamps.game_loot.unwrap_or(0);
+
         let cooldown = guild.values.gamecooldown * 1000;
 
         if is_cooldowned(time_now as u64, timestamp as u64, cooldown as u64) {
@@ -102,7 +104,7 @@ impl XpCommand for FishCommand {
                             message
                                 .embed(|embed| {
                                     embed.description(format!(
-                                        "You need to wait **{} seconds** before you can fish again.",
+                                        "You need to wait **{} seconds** before you can loot again.",
                                         time_left / 1000
                                     ));
                                     embed.color(colors::red())
@@ -117,12 +119,12 @@ impl XpCommand for FishCommand {
         }
 
         // assign xp
-        let random_xp = rand::thread_rng().gen_range(1..=guild.values.fishXP);
+        let random_xp = rand::thread_rng().gen_range(1..=guild.values.lootXP);
 
         guild_member.xp += random_xp as u64;
 
         // set new cooldown
-        guild_member.timestamps.game_fish = Some(time_now as u64);
+        guild_member.timestamps.game_loot = Some(time_now as u64);
         let _ = GuildMember::set_guild_member(
             command.guild_id.unwrap().0,
             command.user.id.0,
@@ -137,8 +139,8 @@ impl XpCommand for FishCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.description(format!(
-                                ":fishing_pole_and_fish: | You caught a fish and gained **{:?}** xp!",
-                                format_number(random_xp as u64)
+                                ":package: | You looted a crate and got **{}** XP!",
+                                format_number(random_xp as u64),
                             ));
                             embed.color(colors::green())
                         })

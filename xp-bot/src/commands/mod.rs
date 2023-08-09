@@ -28,4 +28,6 @@ pub const COMMANDS: &[&dyn XpCommand] = &[
     &admin::setlevel::SetLevelCommand,
     &admin::setstreak::SetStreakCommand,
     &games::fish::FishCommand,
+    &games::roll::RollCommand,
+    &games::loot::LootCommand,
 ];

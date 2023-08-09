@@ -15,19 +15,21 @@ use crate::{
 };
 use rand::Rng;
 
-pub struct FishCommand;
+pub struct RollCommand;
 
 #[async_trait]
-impl XpCommand for FishCommand {
+impl XpCommand for RollCommand {
     fn name(&self) -> &'static str {
-        "fish"
+        "roll"
     }
 
     fn register<'a>(
         &self,
         command: &'a mut CreateApplicationCommand,
     ) -> &'a mut CreateApplicationCommand {
-        command.name("fish").description("Go fishing and find out!")
+        command
+            .name("roll")
+            .description("Roll the dice and find out!")
     }
 
     async fn exec(
@@ -43,7 +45,7 @@ impl XpCommand for FishCommand {
                     response
                         .kind(InteractionResponseType::ChannelMessageWithSource)
                         .interaction_response_data(|message| {
-                            message.embed(|embed| {
+                            message.embed(|embed: &mut serenity::builder::CreateEmbed| {
                                 embed.title("Games module disabled");
                                 embed.description(
                                     format!("This module is disabled on this server. \
@@ -87,7 +89,9 @@ impl XpCommand for FishCommand {
 
         // check cooldowns
         let time_now = chrono::Utc::now().timestamp() * 1000;
-        let timestamp = guild_member.timestamps.game_fish.unwrap_or(0);
+
+        let timestamp = guild_member.timestamps.game_roll.unwrap_or(0);
+
         let cooldown = guild.values.gamecooldown * 1000;
 
         if is_cooldowned(time_now as u64, timestamp as u64, cooldown as u64) {
@@ -102,7 +106,7 @@ impl XpCommand for FishCommand {
                             message
                                 .embed(|embed| {
                                     embed.description(format!(
-                                        "You need to wait **{} seconds** before you can fish again.",
+                                        "You need to wait **{} seconds** before you can roll again.",
                                         time_left / 1000
                                     ));
                                     embed.color(colors::red())
@@ -117,12 +121,12 @@ impl XpCommand for FishCommand {
         }
 
         // assign xp
-        let random_xp = rand::thread_rng().gen_range(1..=guild.values.fishXP);
+        let random_num = rand::thread_rng().gen_range(1..=6);
 
-        guild_member.xp += random_xp as u64;
+        guild_member.xp += random_num * guild.values.rollXP as u64;
 
         // set new cooldown
-        guild_member.timestamps.game_fish = Some(time_now as u64);
+        guild_member.timestamps.game_roll = Some(time_now as u64);
         let _ = GuildMember::set_guild_member(
             command.guild_id.unwrap().0,
             command.user.id.0,
@@ -137,8 +141,9 @@ impl XpCommand for FishCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.description(format!(
-                                ":fishing_pole_and_fish: | You caught a fish and gained **{:?}** xp!",
-                                format_number(random_xp as u64)
+                                ":game_die: | You rolled a **{}** and got **{}** XP!",
+                                random_num,
+                                format_number(random_num * guild.values.rollXP as u64),
                             ));
                             embed.color(colors::green())
                         })
