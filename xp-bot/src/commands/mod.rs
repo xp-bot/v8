@@ -30,4 +30,5 @@ pub const COMMANDS: &[&dyn XpCommand] = &[
     &games::fish::FishCommand,
     &games::roll::RollCommand,
     &games::loot::LootCommand,
+    &games::daily::DailyCommand,
 ];
