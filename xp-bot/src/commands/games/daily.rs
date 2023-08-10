@@ -132,7 +132,7 @@ impl XpCommand for DailyCommand {
         guild_member.xp += daily_xp * streak;
         guild_member.timestamps.game_daily = Some(time_now as u64);
 
-        GuildMember::set_guild_member(command.guild_id.unwrap().0, command.user.id.0, guild_member).await?;
+        let _ = GuildMember::set_guild_member(command.guild_id.unwrap().0, command.user.id.0, guild_member).await?;
 
         command
             .create_interaction_response(ctx, |response| {
