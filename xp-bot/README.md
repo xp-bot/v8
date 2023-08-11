@@ -26,8 +26,11 @@ WEBSITE=https://xp-bot.net
 API_AUTH=
 API_URL=http://namespace.media:3000
 
+# Top.gg
+TOPGG_TOKEN=
+
 # Config
-RUST_LOG=raeys
+RUST_LOG=error,xp_bot=info
 
 # Colors
 BLUE=0x5a62ed
@@ -36,5 +39,5 @@ GREEN=0x7DC95E
 GRAY=0x37474f
 ```
 
-1. `docker pull angelsflyinhell/raeys:latest`
-2. `docker run -d -e DISCORD_TOKEN=<token> --name raeys angelsflyinhell/raeys:latest`
+1. `docker pull xp-bot/raeys:latest`
+2. `docker run -d -env .env DISCORD_TOKEN=<token> --name raeys xp-bot/raeys:latest`
