@@ -3,7 +3,7 @@ FROM rust:latest
 WORKDIR /usr/src
 COPY . . 
 
-RUN cargo install --path .
+RUN cargo install
 EXPOSE 80
 
-CMD ["cargo", "run"]
+CMD ["cargo", "run", "--release"]
