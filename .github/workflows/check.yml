@@ -3,12 +3,8 @@ name: Check Build
 on:
   push:
     branches: [ "master", "dev" ]
-    paths:
-      - 'xp-bot/**'
   pull_request:
     branches: [ "master", "dev" ]
-    paths:
-      - 'xp-bot/**'
 
 defaults:
   run:
