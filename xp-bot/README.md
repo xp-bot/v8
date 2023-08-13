@@ -41,3 +41,5 @@ GRAY=0x37474f
 
 1. `docker pull xp-bot/raeys:latest`
 2. `docker run -d -env .env DISCORD_TOKEN=<token> --name raeys xp-bot/raeys:latest`
+
+
