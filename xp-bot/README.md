@@ -40,6 +40,6 @@ GRAY=0x37474f
 ```
 
 1. `docker pull ghcr.io/xp-bot/raeys-v8:latest`
-2. `docker run -d -env .env DISCORD_TOKEN=<token> --name raeys ghcr.io/xp-bot/raeys-v8:latest`
+2. `docker run -d --env .env DISCORD_TOKEN=<token> --name raeys ghcr.io/xp-bot/raeys-v8:latest`
 
 
