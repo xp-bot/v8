@@ -10,7 +10,12 @@ mod utils;
 
 #[tokio::main]
 async fn main() {
-    dotenv::dotenv().expect("Failed to read .env file");
+    let _ = match dotenv::dotenv() {
+        Ok(_) => info!("Loaded .env file"),
+        Err(_) => {
+            info!("No .env file found, using env vars");
+        }
+    };
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
     // client initialization
