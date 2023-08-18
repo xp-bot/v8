@@ -87,7 +87,7 @@ impl XpCommand for SetCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.description(format!(
-                                "Successfully set xp of <@{}> to {}.",
+                                "Successfully set xp of <@{}> to **{}**.",
                                 user, format_number(amount as u64)
                             ));
                             embed.color(colors::green());

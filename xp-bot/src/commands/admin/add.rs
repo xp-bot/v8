@@ -89,7 +89,7 @@ impl XpCommand for AddCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.description(format!(
-                                "Successfully added {} xp to <@{}>.",
+                                "Successfully added **{}** xp to <@{}>.",
                                 format_number(amount as u64), user
                             ));
                             embed.color(colors::green());

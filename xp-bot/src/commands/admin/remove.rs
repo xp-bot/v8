@@ -88,7 +88,7 @@ impl XpCommand for RemoveCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.description(format!(
-                                "Successfully removed {} xp from <@{}>.",
+                                "Successfully removed **{}** xp from <@{}>.",
                                 format_number(amount as u64), user
                             ));
                             embed.color(colors::green());

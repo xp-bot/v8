@@ -98,7 +98,7 @@ impl XpCommand for SetLevelCommand {
                         message
                             .embed(|embed| {
                                 embed.description(format!(
-                                    "Set the level of <@{}> to {}.",
+                                    "Set the level of <@{}> to **{}**.",
                                     user_id, level
                                 ));
                                 embed.color(colors::green())
