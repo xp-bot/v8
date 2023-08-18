@@ -141,7 +141,7 @@ impl XpCommand for RollCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.description(format!(
-                                ":game_die: | You rolled a **{}** and got **{}** XP!",
+                                ":game_die: | You rolled a **{}** and got **{}** xp!",
                                 random_num,
                                 format_number(random_num * guild.values.rollXP as u64),
                             ));
