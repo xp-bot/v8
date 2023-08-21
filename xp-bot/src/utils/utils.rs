@@ -49,11 +49,7 @@ pub fn calculate_total_boost_percentage(
 }
 
 pub fn format_number(number: u64) -> String {
-    // 123456789 => 123,456,789
-    // 3123 => 3,123
-    // 123 => 123
-
-    let mut number_string = number.to_string();
+    let number_string = number.to_string();
     let mut formatted_number = String::new();
 
     let mut counter = 0;
