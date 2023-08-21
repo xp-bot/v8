@@ -121,9 +121,9 @@ impl XpCommand for DailyCommand {
 
         let daily_xp = 250;
 
-        // reset streak if last daily was claimed more than 24 hours ago
+        // reset streak if last daily was claimed more than 48 hours ago
         let streak =
-            if time_now - guild_member.timestamps.game_daily.unwrap_or(0) as i64 > 86400 * 1000 {
+            if time_now - guild_member.timestamps.game_daily.unwrap_or(0) as i64 > 86400 * 1000 * 2 {
                 1
             } else {
                 guild_member.streaks.game_daily.unwrap_or(0) + 1
@@ -131,6 +131,7 @@ impl XpCommand for DailyCommand {
 
         guild_member.xp += daily_xp * streak;
         guild_member.timestamps.game_daily = Some(time_now as u64);
+        guild_member.streaks.game_daily = Some(streak);
 
         let _ = GuildMember::set_guild_member(command.guild_id.unwrap().0, command.user.id.0, guild_member).await?;
 
