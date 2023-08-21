@@ -67,7 +67,7 @@ impl XpCommand for LevelCommand {
                 embed.title(format!("Level {}", level)).description(format!(
                     "You need **{} xp** to reach level **{}**.\n You currently have **{} xp** (**{}%**).",
                     crate::utils::utils::format_number(required_xp as u64),
-                    crate::utils::utils::format_number(level as u64),
+                    level,
                     crate::utils::utils::format_number(guild_member.xp as u64),
                     (guild_member.xp as f32 / required_xp as f32 * 100.0).round()
                 )).color(colors::blue())

@@ -139,7 +139,7 @@ impl XpCommand for LootCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.description(format!(
-                                ":package: | You looted a crate and got **{}** XP!",
+                                ":package: | You looted a crate and got **{}** xp!",
                                 format_number(random_xp as u64),
                             ));
                             embed.color(colors::green())

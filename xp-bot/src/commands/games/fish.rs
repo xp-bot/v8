@@ -137,7 +137,7 @@ impl XpCommand for FishCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.description(format!(
-                                ":fishing_pole_and_fish: | You caught a fish and gained **{:?}** xp!",
+                                ":fishing_pole_and_fish: | You caught a fish and gained **{}** xp!",
                                 format_number(random_xp as u64)
                             ));
                             embed.color(colors::green())

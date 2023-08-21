@@ -49,18 +49,22 @@ pub fn calculate_total_boost_percentage(
 }
 
 pub fn format_number(number: u64) -> String {
-    let mut number = number.to_string();
+    let number_string = number.to_string();
     let mut formatted_number = String::new();
 
-    while number.len() > 3 {
-        formatted_number = format!(
-            "{}{}",
-            number.split_off(number.len() - 3),
-            if formatted_number.is_empty() { "" } else { "," }
-        );
+    let mut counter = 0;
+
+    for character in number_string.chars().rev() {
+        if counter == 3 {
+            formatted_number.push(',');
+            counter = 0;
+        }
+
+        formatted_number.push(character);
+        counter += 1;
     }
 
-    format!("{}{}", number, formatted_number)
+    formatted_number.chars().rev().collect::<String>()
 }
 
 pub async fn eligibility_helper(user_id: u64) -> bool {

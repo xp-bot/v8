@@ -115,7 +115,7 @@ impl XpCommand for SetStreakCommand {
                         message
                             .embed(|embed| {
                                 embed.description(format!(
-                                    "The streak of <@{}> has been set to {}.",
+                                    "The streak of <@{}> has been set to **{}**.",
                                     user_id, streak
                                 ));
                                 embed.color(colors::green());

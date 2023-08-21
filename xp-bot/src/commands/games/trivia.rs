@@ -209,6 +209,7 @@ impl XpCommand for TriviaCommand {
 
         let collector = message
             .await_component_interaction(&ctx)
+            .author_id(command.user.id)
             .timeout(Duration::from_secs(30))
             .await;
 
@@ -225,6 +226,8 @@ impl XpCommand for TriviaCommand {
                 if correct {
                     guild_member.xp += xp as u64;
                     guild_member.timestamps.game_trivia = Some(time_now as u64);
+                    guild_member.streaks.game_trivia = Some(guild_member.streaks.game_trivia.unwrap_or(0) + 1);
+
                     let _ = GuildMember::set_guild_member(
                         command.guild_id.unwrap().0,
                         command.user.id.0,
