@@ -209,6 +209,7 @@ impl XpCommand for TriviaCommand {
 
         let collector = message
             .await_component_interaction(&ctx)
+            .author_id(command.user.id)
             .timeout(Duration::from_secs(30))
             .await;
 
