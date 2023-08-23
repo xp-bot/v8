@@ -163,7 +163,7 @@ impl XpCommand for SettingsCommand {
                 option_value = "Values".to_string();
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Message xp: {}",
+                        "Message xp: {}",
                         crate::utils::utils::format_number(guild.values.messagexp as u64)
                     ),
                     "The amount of xp a user gets per message.".to_string(),
@@ -171,7 +171,7 @@ impl XpCommand for SettingsCommand {
                 ));
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Message cooldown: {}",
+                        "Message cooldown: {}",
                         crate::utils::utils::format_number(guild.values.messagecooldown as u64)
                     ),
                     "The time in seconds until the next message will be counted.".to_string(),
@@ -179,7 +179,7 @@ impl XpCommand for SettingsCommand {
                 ));
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Voice xp: {}",
+                        "Voice xp: {}",
                         crate::utils::utils::format_number(guild.values.voicexp as u64)
                     ),
                     "The amount of xp a user receives per minute in the voicechat.".to_string(),
@@ -187,7 +187,7 @@ impl XpCommand for SettingsCommand {
                 ));
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Voice Join Cooldown: {}",
+                        "Voice Join Cooldown: {}",
                         crate::utils::utils::format_number(guild.values.voicejoincooldown as u64)
                     ),
                     "The time in seconds until XP starts measuring the user's voicechat time."
@@ -196,7 +196,7 @@ impl XpCommand for SettingsCommand {
                 ));
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Reaction xp: {}",
+                        "Reaction xp: {}",
                         crate::utils::utils::format_number(guild.values.reactionxp as u64)
                     ),
                     "The amount of xp a user gets per reaction.".to_string(),
@@ -204,7 +204,7 @@ impl XpCommand for SettingsCommand {
                 ));
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Loot xp: {}",
+                        "Loot xp: {}",
                         crate::utils::utils::format_number(guild.values.lootXP as u64)
                     ),
                     "The amount of xp a user gets for playing `/loot`.".to_string(),
@@ -212,7 +212,7 @@ impl XpCommand for SettingsCommand {
                 ));
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Fish xp: {}",
+                        "Fish xp: {}",
                         crate::utils::utils::format_number(guild.values.fishXP as u64)
                     ),
                     "The amount of xp a user gets for playing `/fish`.".to_string(),
@@ -220,7 +220,7 @@ impl XpCommand for SettingsCommand {
                 ));
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Roll xp: {}",
+                        "Roll xp: {}",
                         crate::utils::utils::format_number(guild.values.rollXP as u64)
                     ),
                     "The amount of xp a user gets for playing `/roll`.".to_string(),
@@ -228,7 +228,7 @@ impl XpCommand for SettingsCommand {
                 ));
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Game cooldown: {}",
+                        "Game cooldown: {}",
                         crate::utils::utils::format_number(guild.values.gamecooldown as u64)
                     ),
                     format!(
@@ -239,7 +239,7 @@ impl XpCommand for SettingsCommand {
                 ));
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Trivia xp: {}",
+                        "Trivia xp: {}",
                         crate::utils::utils::format_number(guild.values.triviaxp as u64)
                     ),
                     "The maximum amount of xp a user gets for playing trivia.".to_string(),
@@ -247,7 +247,7 @@ impl XpCommand for SettingsCommand {
                 ));
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Trivia cooldown: {}",
+                        "Trivia cooldown: {}",
                         crate::utils::utils::format_number(guild.values.triviacooldown as u64)
                     ),
                     format!(
@@ -258,7 +258,7 @@ impl XpCommand for SettingsCommand {
                 ));
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Maximum daily xp: {}",
+                        "Maximum daily xp: {}",
                         crate::utils::utils::format_number(guild.values.maximumdailyxp as u64)
                     ),
                     "The maximum amount of xp obtainable by executing the `/daily` command."
@@ -267,7 +267,7 @@ impl XpCommand for SettingsCommand {
                 ));
                 fields.push((
                     format!(
-                        "<:xp_logo_box:860148324622532628> Maximum level: {}",
+                        "Maximum level: {}",
                         crate::utils::utils::format_number(guild.values.maximumlevel as u64)
                     ),
                     "The maximum level that can be reached.".to_string(),
@@ -296,12 +296,12 @@ impl XpCommand for SettingsCommand {
                 });
 
                 fields.push((
-                    "<:xp_logo_box:860148324622532628> Autorole".to_string(),
+                    "Autorole".to_string(),
                     autorole,
                     false,
                 ));
                 fields.push((
-                    "<:xp_logo_box:860148324622532628> Levelroles".to_string(),
+                    "Levelroles".to_string(),
                     levelroles,
                     false,
                 ));
@@ -349,17 +349,17 @@ impl XpCommand for SettingsCommand {
                 }
 
                 fields.push((
-                    "<:xp_logo_box:860148324622532628> Boosted roles".to_string(),
+                    "Boosted roles".to_string(),
                     boostroles,
                     false,
                 ));
                 fields.push((
-                    "<:xp_logo_box:860148324622532628> Boosted channels".to_string(),
+                    "Boosted channels".to_string(),
                     boostchannels,
                     false,
                 ));
                 fields.push((
-                    "<:xp_logo_box:860148324622532628> Boosted categories".to_string(),
+                    "Boosted categories".to_string(),
                     boostcategories,
                     false,
                 ));
@@ -407,17 +407,17 @@ impl XpCommand for SettingsCommand {
                 }
 
                 fields.push((
-                    "<:xp_logo_box:860148324622532628> Ignored roles".to_string(),
+                    "Ignored roles".to_string(),
                     ignoredroles,
                     false,
                 ));
                 fields.push((
-                    "<:xp_logo_box:860148324622532628> Ignored channels".to_string(),
+                    "Ignored channels".to_string(),
                     ignoredchannels,
                     false,
                 ));
                 fields.push((
-                    "<:xp_logo_box:860148324622532628> Ignored categories".to_string(),
+                    "Ignored categories".to_string(),
                     ignoredcategories,
                     false,
                 ));
