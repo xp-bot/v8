@@ -6,7 +6,7 @@ use serenity::{
     builder::CreateApplicationCommand,
     model::{
         self,
-        prelude::{application_command::ApplicationCommandInteraction, InteractionResponseType},
+        prelude::{application_command::ApplicationCommandInteraction, InteractionResponseType, command},
     },
     prelude::Context,
 };
@@ -215,6 +215,8 @@ impl XpCommand for TriviaCommand {
 
         match collector {
             Some(interaction) => {
+                interaction.defer(&ctx.http).await?;
+
                 let mut correct = false;
 
                 if interaction.user.id == command.user.id {
@@ -260,6 +262,8 @@ impl XpCommand for TriviaCommand {
                         })
                         .await?;
                 }
+
+                return Ok(());
             }
             None => {
                 command
@@ -273,8 +277,7 @@ impl XpCommand for TriviaCommand {
 
                 return Ok(());
             }
-        }
 
-        Ok(())
+        }
     }
 }
