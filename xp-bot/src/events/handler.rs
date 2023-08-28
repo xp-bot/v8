@@ -1,12 +1,12 @@
 use log::{error, info};
 use serenity::{
     async_trait,
-    model::prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message},
-    prelude::{Context, EventHandler},
+    model::prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, ChannelId},
+    prelude::{Context, EventHandler}, builder::CreateMessage,
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember};
 
-use crate::{commands, utils::{colors, utils::{is_cooldowned, self}}};
+use crate::{commands, utils::{colors, utils::{is_cooldowned, self}, math::calculate_level}};
 
 pub struct Handler;
 
@@ -266,6 +266,38 @@ impl EventHandler for Handler {
         let xp = (guild.values.messagexp as f32 * (boost_percentage + 1.0)) as u32;
 
         // check if user leveled up, dont send if user is incognito
+        let current_level = calculate_level(member.xp);
+        let new_level = calculate_level(member.xp + xp as u64);
+
+        if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
+            let channel_id = if !guild.announce.current {
+                guild.logs.levelup.unwrap_or("".to_string()).parse::<u64>().unwrap()
+            } else {
+                msg.channel_id.0
+            };
+
+            let mut lvl_msg = guild.announce.message.clone();
+            lvl_msg = lvl_msg.replace("{CMB}", (new_level - current_level).to_string().as_str());
+            lvl_msg = lvl_msg.replace("{LVL}", new_level.to_string().as_str());
+            lvl_msg = lvl_msg.replace("{OLDLVL}", current_level.to_string().as_str());
+            lvl_msg = lvl_msg.replace("{MNT}", format!("<@{}>", user_id).as_str());
+            lvl_msg = lvl_msg.replace("{TAG}", format!("{}", msg.author.name).as_str());
+
+            // send message to channel with channel_id
+            let _ = ChannelId(channel_id)
+                .send_message(&ctx.http, |message: &mut CreateMessage| {
+                    if guild.announce.ping {
+                        message.content(format!("<@{}>", user_id));
+                    }
+                    message.embed(|embed| {
+                        embed.description(lvl_msg);
+                        embed.color(colors::blue());
+                        embed
+                    });
+                    message
+                })
+                .await;
+        }
 
         // add xp to user
         member.xp += xp as u64;

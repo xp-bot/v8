@@ -17,6 +17,7 @@ pub struct Guild {
     pub boosts: GuildBoosts,
     pub levelroles: Vec<GuildLevelRoles>,
     pub announce: GuildAnnounce,
+    pub logs: GuildLogs,
 }
 
 #[allow(non_snake_case)]
