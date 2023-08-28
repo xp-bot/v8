@@ -6,7 +6,7 @@ use serenity::{
     builder::CreateApplicationCommand,
     model::{
         self,
-        prelude::{application_command::ApplicationCommandInteraction, InteractionResponseType, command},
+        prelude::{application_command::ApplicationCommandInteraction, InteractionResponseType},
     },
     prelude::Context,
 };

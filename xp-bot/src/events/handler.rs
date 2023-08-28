@@ -1,12 +1,12 @@
 use log::{error, info};
 use serenity::{
     async_trait,
-    model::prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready},
+    model::prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message},
     prelude::{Context, EventHandler},
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember};
 
-use crate::{commands, utils::colors};
+use crate::{commands, utils::{colors, utils::{is_cooldowned, self}}};
 
 pub struct Handler;
 
@@ -184,5 +184,101 @@ impl EventHandler for Handler {
                 _ => {}
             };
         }
+    }
+
+    async fn message(&self, ctx: Context, msg: Message) {
+        let user_id = msg.author.id.0;
+        let guild_id = msg.guild_id.unwrap().0;
+
+        // check if message is longer than 5 characters
+        if msg.content.len() < 5 {
+            return ();
+        }
+
+        // get database data
+        let guild = Guild::from_id(guild_id).await.unwrap();
+        let mut member = GuildMember::from_id(guild_id, user_id).await.unwrap();
+
+        // check if user is incognito
+        if member.settings.incognito.is_some() && member.settings.incognito.unwrap() {
+            return ();
+        }
+
+        // check if messagexp module is enabled
+        if !guild.modules.messagexp {
+            return ();
+        }
+
+        // check if user is on cooldown
+        let last_timestamp = member.timestamps.message_cooldown.unwrap_or(0);
+        let timestamp = chrono::Utc::now().timestamp() * 1000;
+        if is_cooldowned(timestamp as u64, last_timestamp, guild.values.messagecooldown as u64 * 1000) {
+            return ();
+        }
+
+        // check for ignored roles, channels or categories
+        let channel_id = msg.channel_id.0;
+
+        let category_id = match msg.channel_id.to_channel(&ctx).await.unwrap() {
+            serenity::model::channel::Channel::Guild(channel) => {
+                channel.parent_id.unwrap().0
+            }
+            _ => 0,
+        };
+
+        let role_ids = msg
+            .member
+            .unwrap()
+            .roles
+            .iter()
+            .map(|role| role.0)
+            .collect::<Vec<u64>>();
+
+        for ignored_role in guild.ignored.roles {
+            if role_ids.contains(&ignored_role.parse::<u64>().unwrap().to_owned()) {
+                return ();
+            }
+        }
+
+        if guild
+            .ignored
+            .channels
+            .unwrap()
+            .contains(&channel_id.to_owned().to_string())
+        {
+            return ();
+        }
+
+        if guild
+            .ignored
+            .categories
+            .unwrap()
+            .contains(&category_id.to_owned().to_string())
+        {
+            return ();
+        }
+
+        // calculate boost percentage
+        let guild = Guild::from_id(guild_id).await.unwrap();
+        let boost_percentage = utils::calculate_total_boost_percentage_by_ids(
+            guild.clone(),
+            role_ids,
+            channel_id,
+            Some(category_id),
+        );
+
+        // calculate xp
+        let xp = (guild.values.messagexp as f32 * (boost_percentage + 1.0)) as u32;
+
+        // check if user leveled up
+
+        // add xp to user
+        member.xp += xp as u64;
+
+        // set new cooldown
+        member.timestamps.message_cooldown = Some(timestamp as u64);
+
+        // update database
+        let _ = GuildMember::set_guild_member(guild_id, user_id, member).await;
     }
 }
