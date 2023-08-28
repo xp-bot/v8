@@ -199,11 +199,6 @@ impl EventHandler for Handler {
         let guild = Guild::from_id(guild_id).await.unwrap();
         let mut member = GuildMember::from_id(guild_id, user_id).await.unwrap();
 
-        // check if user is incognito
-        if member.settings.incognito.is_some() && member.settings.incognito.unwrap() {
-            return ();
-        }
-
         // check if messagexp module is enabled
         if !guild.modules.messagexp {
             return ();
@@ -270,7 +265,7 @@ impl EventHandler for Handler {
         // calculate xp
         let xp = (guild.values.messagexp as f32 * (boost_percentage + 1.0)) as u32;
 
-        // check if user leveled up
+        // check if user leveled up, dont send if user is incognito
 
         // add xp to user
         member.xp += xp as u64;
@@ -279,6 +274,6 @@ impl EventHandler for Handler {
         member.timestamps.message_cooldown = Some(timestamp as u64);
 
         // update database
-        let _ = GuildMember::set_guild_member(guild_id, user_id, member).await;
+        let _ = GuildMember::set_xp(guild_id, user_id, member.xp, member).await;
     }
 }
