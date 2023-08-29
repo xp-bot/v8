@@ -26,8 +26,16 @@ fn main() {
         .unwrap();
 
     let application: Application = response.json().unwrap();
-
     println!("Approximate guild count: {}", application.approximate_guild_count);
 
-    // deploy ghcr packages raeys-v8 and raeys-v8-beta
+    let shard_count = application.approximate_guild_count / 1000 + 1;
+    println!("Shard count: {}", shard_count);
+
+    // 25% of the shards are used for preview
+    let preview_shard_count = shard_count / 4;
+    let prod_shard_count = shard_count - preview_shard_count;
+    println!("Preview shard count: {}", preview_shard_count);
+    println!("Production shard count: {}", prod_shard_count);
+
+    // deploy ghcr packages raeys-v8 and raeys-v8-preview
 }
