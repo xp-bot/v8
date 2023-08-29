@@ -1,7 +1,7 @@
 use log::{error, info};
 use serenity::{
     async_trait,
-    model::prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, ChannelId},
+    model::prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, ChannelId, Reaction},
     prelude::{Context, EventHandler}, builder::CreateMessage,
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember};
@@ -304,6 +304,89 @@ impl EventHandler for Handler {
 
         // set new cooldown
         member.timestamps.message_cooldown = Some(timestamp as u64);
+
+        // update database
+        let _ = GuildMember::set_xp(guild_id, user_id, member.xp, member).await;
+    }
+
+    async fn reaction_add(&self, ctx: Context, add_reaction: Reaction) {
+        let user_id = add_reaction.user_id.unwrap().0;
+        let guild_id = add_reaction.guild_id.unwrap().0;
+
+        // get database data
+        let guild = Guild::from_id(guild_id).await.unwrap();
+        let mut member = GuildMember::from_id(guild_id, user_id).await.unwrap();
+
+        // check if reactionxp module is enabled
+        if !guild.modules.reactionxp {
+            return ();
+        }
+
+        // check for ignored roles, channels or categories
+        let channel_id = add_reaction.channel_id.0;
+
+        let category_id = match add_reaction.channel_id.to_channel(&ctx).await.unwrap() {
+            serenity::model::channel::Channel::Guild(channel) => {
+                channel.parent_id.unwrap().0
+            }
+            _ => 0,
+        };
+
+        let role_ids = add_reaction
+            .member
+            .unwrap()
+            .roles
+            .iter()
+            .map(|role| role.0)
+            .collect::<Vec<u64>>();
+
+        for ignored_role in guild.ignored.roles {
+            if role_ids.contains(&ignored_role.parse::<u64>().unwrap().to_owned()) {
+                return ();
+            }
+        }
+
+        if guild
+            .ignored
+            .channels
+            .unwrap()
+            .contains(&channel_id.to_owned().to_string())
+        {
+            return ();
+        }
+
+        if guild
+            .ignored
+            .categories
+            .unwrap()
+            .contains(&category_id.to_owned().to_string())
+        {
+            return ();
+        }
+
+        // calculate boost percentage
+        let guild = Guild::from_id(guild_id).await.unwrap();
+
+        let boost_percentage = utils::calculate_total_boost_percentage_by_ids(
+            guild.clone(),
+            role_ids,
+            channel_id,
+            Some(category_id),
+        );
+
+        // calculate xp
+        let xp = (guild.values.reactionxp as f32 * (boost_percentage + 1.0)) as u32;
+
+        // check if user leveled up, dont send if user is incognito
+        let current_level = calculate_level(member.xp);
+        let new_level = calculate_level(member.xp + xp as u64);
+
+        if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
+            
+        }
+
+        // add xp to user
+        member.xp += xp as u64;
 
         // update database
         let _ = GuildMember::set_xp(guild_id, user_id, member.xp, member).await;
