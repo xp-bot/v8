@@ -1,5 +1,5 @@
+use serde::{Deserialize, Serialize};
 use std::env;
-use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Application {
@@ -26,7 +26,10 @@ fn main() {
         .unwrap();
 
     let application: Application = response.json().unwrap();
-    println!("Approximate guild count: {}", application.approximate_guild_count);
+    println!(
+        "Approximate guild count: {}",
+        application.approximate_guild_count
+    );
 
     let shard_count = application.approximate_guild_count / 1000 + 1;
     println!("Shard count: {}", shard_count);
@@ -37,5 +40,35 @@ fn main() {
     println!("Preview shard count: {}", preview_shard_count);
     println!("Production shard count: {}", prod_shard_count);
 
-    // deploy ghcr packages raeys-v8 and raeys-v8-preview
+    // stop and remove old containers
+    std::process::Command::new("docker")
+        .args(&["stop", "xpbot-v8"])
+        .status()
+        .expect("failed to execute process");
+
+    std::process::Command::new("docker")
+        .args(&["rm", "xpbot-v8"])
+        .status()
+        .expect("failed to execute process");
+
+    std::process::Command::new("docker")
+        .args(&["stop", "xpbot-v8-preview"])
+        .status()
+        .expect("failed to execute process");
+
+    std::process::Command::new("docker")
+        .args(&["rm", "xpbot-v8-preview"])
+        .status()
+        .expect("failed to execute process");
+
+    // deploy ghcr packages raeys-v8 and raeys-v8-preview with docker
+    std::process::Command::new("docker")
+        .args(&["run", "-d", "--env .env", "--name xpbot-v8", "ghcr.io/xp-bot/raeys-v8:latest"])
+        .status()
+        .expect("failed to execute process");
+
+    std::process::Command::new("docker")
+        .args(&["run", "-d", "--env .env", "--name xpbot-v8-preview",  "ghcr.io/xp-bot/raeys-v8-preview:latest"])
+        .status()
+        .expect("failed to execute process");
 }
