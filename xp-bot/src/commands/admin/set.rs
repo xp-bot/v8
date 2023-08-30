@@ -78,7 +78,7 @@ impl XpCommand for SetCommand {
 
         let guild_member = GuildMember::from_id(guild_id, user).await?;
 
-        let _ = GuildMember::set_xp(guild_id, user, amount, guild_member).await?;
+        let _ = GuildMember::set_xp(guild_id, user, &amount, &guild_member).await?;
 
         command
             .create_interaction_response(&ctx.http, |response| {

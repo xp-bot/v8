@@ -19,6 +19,6 @@ pub fn calculate_xp_from_voice_time(
     (voice_time as f32 * (voice_xp as f32 / 60 as f32)) as u32 * (boost_percentage + 1.0).floor() as u32
 }
 
-pub fn calculate_level(xp: u64) -> i32 {
-    return ((2 as f64 * xp as f64 + 5 as f64).sqrt() as f32 / 10 as f32).floor() as i32;
+pub fn calculate_level(xp: &u64) -> i32 {
+    return ((2 as f64 * xp.to_owned() as f64 + 5 as f64).sqrt() as f32 / 10 as f32).floor() as i32;
 }
