@@ -4,7 +4,7 @@ use serenity::{
     model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction}, voice::VoiceState},
     prelude::{Context, EventHandler},
 };
-use xp_db_connector::{guild::Guild, guild_member::GuildMember};
+use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
 
 use crate::{commands, utils::{colors, utils::{is_cooldowned, self, send_level_up}, math::calculate_level}};
 
@@ -386,7 +386,7 @@ impl EventHandler for Handler {
         if old.is_none() && new.channel_id.is_some() {
             Handler::voice_join(ctx, new.guild_id.unwrap(), &new).await;
         } else if old.is_some() && new.channel_id.is_none() {
-            Handler::voice_leave(ctx, new.guild_id.unwrap(), &new).await;
+            Handler::voice_leave(ctx, new.guild_id.unwrap(), new).await;
         } else if old.is_some() && new.channel_id.is_some() {
             Handler::voice_move(ctx, new.guild_id.unwrap(), &new).await;
         }
@@ -394,15 +394,87 @@ impl EventHandler for Handler {
 }
 
 impl Handler {
-    pub async fn voice_join(_ctx: Context, _guild_id: GuildId, _joined: &VoiceState) {
-        log::info!("voice join");
+    pub async fn voice_join(_ctx: Context, guild_id: GuildId, joined: &VoiceState) {
+        let timestamp = chrono::Utc::now().timestamp() * 1000;
+        let mut user = User::from_id(joined.user_id.0).await.unwrap();
+        let guild = Guild::from_id(guild_id.0).await.unwrap();
+
+        // check if voice module is enabled
+        if !guild.modules.voicexp {
+            return ();
+        }
+
+        // set new timestamp
+        user.timestamps.join_voicechat = Some(timestamp as u64);
+
+        // update database
+        let _ = User::set(joined.user_id.0, user).await;
     }
 
-    pub async fn voice_leave(_ctx: Context, _guild_id: GuildId, _left: &VoiceState) {
-        log::info!("voice leave");
+    pub async fn voice_leave(ctx: Context, guild_id: GuildId, left: VoiceState) {
+        let timestamp = chrono::Utc::now().timestamp() * 1000;
+        let user = User::from_id(left.user_id.0).await.unwrap();
+        let mut member = GuildMember::from_id(guild_id.0, left.user_id.0).await.unwrap();
+        let guild = Guild::from_id(guild_id.0).await.unwrap();
+
+        // check if voice module is enabled
+        if !guild.modules.voicexp {
+            return ();
+        }
+
+        // calculate time in voice chat
+        let last_timestamp = user.timestamps.join_voicechat.unwrap_or(0);
+        let time_in_voicechat = (timestamp - last_timestamp as i64 - guild.values.voicejoincooldown as i64 * 1000) / 1000;
+
+        // calculate boost percentage
+        let boost_percentage = utils::calculate_total_boost_percentage_by_ids(
+            guild.clone(),
+            left.member.unwrap().roles.iter().map(|role| role.0).collect::<Vec<u64>>(),
+            left.channel_id.unwrap().0,
+            Some(match left.channel_id.unwrap().to_channel(&ctx).await.unwrap() {
+                serenity::model::channel::Channel::Guild(channel) => {
+                    channel.parent_id.unwrap().0
+                }
+                _ => 0,
+            }),
+        );
+
+        // calculate xp
+        let xp = ((guild.values.voicexp as f32 * time_in_voicechat as f32) * (boost_percentage + 1.0)) as u32;
+
+        // check if user leveled up, dont send if user is incognito
+        let current_level = calculate_level(member.xp);
+        let new_level = calculate_level(member.xp + xp as u64);
+
+        if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
+            let username = ctx
+                .http
+                .get_user(left.user_id.0)
+                .await
+                .unwrap()
+                .name
+                .to_owned();
+
+            send_level_up(guild,
+                left.user_id.0,
+                current_level,
+                new_level,
+                &ctx,
+                left.channel_id.unwrap().0,
+                &username,
+            ).await;
+        }
+
+        // add xp to user
+        member.xp += xp as u64;
+
+        // update database
+        let _ = GuildMember::set_xp(guild_id.0, left.user_id.0, member.xp, member).await;
     }
 
     pub async fn voice_move(_ctx: Context, _guild_id: GuildId, _moved: &VoiceState) {
-        log::info!("voice move");
+        log::info!("voice move"); 
+
+        // can also be mute/unmute, deafen/undeafen or self mute/unmute, self deafen/undeafen
     }
 }

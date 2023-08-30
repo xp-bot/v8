@@ -1,15 +1,15 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::DbResult;
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct UserResponse {
     pub success: bool,
     pub message: String,
     pub content: Option<User>,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct User {
     pub badges: Vec<String>,
     pub titles: Vec<String>,
@@ -17,7 +17,7 @@ pub struct User {
     pub timestamps: UserTimestamps,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct UserTimestamps {
     pub message_cooldown: Option<u64>,
     pub join_voicechat: Option<u64>,
@@ -28,13 +28,13 @@ pub struct UserTimestamps {
     pub game_roll: Option<u64>,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct UserSettings {
     pub background: UserSettingsBackground,
     pub language: String,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct UserSettingsBackground {
     pub bg: Option<i32>,
     pub blur: Option<i32>,
@@ -42,7 +42,7 @@ pub struct UserSettingsBackground {
     pub canvas: bool,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct UserPremiumResponse {
     pub success: bool,
     pub message: String,
@@ -50,7 +50,7 @@ pub struct UserPremiumResponse {
 }
 
 #[allow(non_snake_case)]
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct UserPremium {
     pub userPremium: bool,
     pub serverPremium: u32,
@@ -77,6 +77,15 @@ impl User {
             Ok(response.content.unwrap().userPremium)
         } else {
             Err(format!("Failed to get user premium: {}", response.message).into())
+        }
+    }
+
+    pub async fn set(user_id: u64, user: User) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
+        let response = crate::patch_json(format!("/user/{}", user_id), user).await;
+
+        match response {
+            Ok(_) => Ok(Ok(())),
+            Err(e) => Ok(Err(e.into())),
         }
     }
 }
