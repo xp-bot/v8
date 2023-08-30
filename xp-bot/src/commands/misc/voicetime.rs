@@ -182,9 +182,8 @@ impl XpCommand for VoicetimeCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.title(format!(
-                                "{}'s voicetime in {}",
-                                username,
-                                ctx.cache.guild(command.guild_id.unwrap()).unwrap().name
+                                "{}'s voicetime",
+                                username
                             ));
                             embed.description(time_string);
 
