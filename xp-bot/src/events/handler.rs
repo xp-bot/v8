@@ -1,7 +1,7 @@
 use log::{error, info};
 use serenity::{
     async_trait,
-    model::prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction},
+    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction}, voice::VoiceState},
     prelude::{Context, EventHandler},
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember};
@@ -379,5 +379,30 @@ impl EventHandler for Handler {
 
         // update database
         let _ = GuildMember::set_xp(guild_id, user_id, member.xp, member).await;
+    }
+
+    async fn voice_state_update(&self, ctx: Context, old: Option<VoiceState>, new: VoiceState) {
+        // check if the event is a join, leave or move event
+        if old.is_none() && new.channel_id.is_some() {
+            Handler::voice_join(ctx, new.guild_id.unwrap(), &new).await;
+        } else if old.is_some() && new.channel_id.is_none() {
+            Handler::voice_leave(ctx, new.guild_id.unwrap(), &new).await;
+        } else if old.is_some() && new.channel_id.is_some() {
+            Handler::voice_move(ctx, new.guild_id.unwrap(), &new).await;
+        }
+    }
+}
+
+impl Handler {
+    pub async fn voice_join(_ctx: Context, _guild_id: GuildId, _joined: &VoiceState) {
+        log::info!("voice join");
+    }
+
+    pub async fn voice_leave(_ctx: Context, _guild_id: GuildId, _left: &VoiceState) {
+        log::info!("voice leave");
+    }
+
+    pub async fn voice_move(_ctx: Context, _guild_id: GuildId, _moved: &VoiceState) {
+        log::info!("voice move");
     }
 }
