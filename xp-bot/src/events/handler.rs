@@ -537,6 +537,7 @@ impl Handler {
     }
 
     /*
+        IMPORTANT: Subject to change, we will build a better implementation in the future
         TODO: voice_move should be refactored in the future, as it's basically just code duplication
     */ 
     pub async fn voice_move(ctx: Context, guild_id: GuildId, moved: VoiceState) {
