@@ -119,9 +119,7 @@ impl XpCommand for LootCommand {
         }
 
         // assign xp
-        let random_xp = rand::thread_rng().gen_range(1..=guild.values.lootXP);
-
-        guild_member.xp += random_xp as u64;
+        guild_member.xp += guild.values.lootXP as u64;
 
         // set new cooldown
         guild_member.timestamps.game_loot = Some(time_now as u64);
@@ -140,7 +138,7 @@ impl XpCommand for LootCommand {
                         message.embed(|embed| {
                             embed.description(format!(
                                 ":package: | You looted a crate and got **{}** xp!",
-                                format_number(random_xp as u64),
+                                format_number(guild.values.lootXP as u64),
                             ));
                             embed.color(colors::green())
                         })

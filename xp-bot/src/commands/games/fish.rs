@@ -117,9 +117,7 @@ impl XpCommand for FishCommand {
         }
 
         // assign xp
-        let random_xp = rand::thread_rng().gen_range(1..=guild.values.fishXP);
-
-        guild_member.xp += random_xp as u64;
+        guild_member.xp += guild.values.fishXP as u64;
 
         // set new cooldown
         guild_member.timestamps.game_fish = Some(time_now as u64);
@@ -138,7 +136,7 @@ impl XpCommand for FishCommand {
                         message.embed(|embed| {
                             embed.description(format!(
                                 ":fishing_pole_and_fish: | You caught a fish and gained **{}** xp!",
-                                format_number(random_xp as u64)
+                                format_number(guild.values.fishXP as u64)
                             ));
                             embed.color(colors::green())
                         })
