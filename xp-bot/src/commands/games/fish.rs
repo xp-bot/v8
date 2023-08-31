@@ -13,7 +13,6 @@ use crate::{
         utils::{eligibility_helper, is_cooldowned, format_number},
     },
 };
-use rand::Rng;
 
 pub struct FishCommand;
 

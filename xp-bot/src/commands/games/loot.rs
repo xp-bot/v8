@@ -13,7 +13,6 @@ use crate::{
         utils::{eligibility_helper, format_number, is_cooldowned},
     },
 };
-use rand::Rng;
 
 pub struct LootCommand;
 
