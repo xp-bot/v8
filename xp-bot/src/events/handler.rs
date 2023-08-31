@@ -188,7 +188,7 @@ impl EventHandler for Handler {
 
     async fn message(&self, ctx: Context, msg: Message) {
         let user_id = msg.author.id.0;
-        let guild_id = msg.guild_id.unwrap().0;
+        let guild_id = msg.guild_id.clone().unwrap().0;
 
         // check if message is longer than 5 characters
         if msg.content.len() < 5 {
@@ -200,87 +200,161 @@ impl EventHandler for Handler {
         let mut member = GuildMember::from_id(guild_id, user_id).await.unwrap();
 
         // check if messagexp module is enabled
-        if !guild.modules.messagexp {
-            return ();
-        }
-
-        // check if user is on cooldown
-        let last_timestamp = member.timestamps.message_cooldown.unwrap_or(0);
-        let timestamp = chrono::Utc::now().timestamp() * 1000;
-        if is_cooldowned(timestamp as u64, last_timestamp, guild.values.messagecooldown as u64 * 1000) {
-            return ();
-        }
-
-        // check for ignored roles, channels or categories
-        let channel_id = msg.channel_id.0;
-
-        let category_id = match msg.channel_id.to_channel(&ctx).await.unwrap() {
-            serenity::model::channel::Channel::Guild(channel) => {
-                channel.parent_id.unwrap().0
-            }
-            _ => 0,
-        };
-
-        let role_ids = msg
-            .member
-            .unwrap()
-            .roles
-            .iter()
-            .map(|role| role.0)
-            .collect::<Vec<u64>>();
-
-        for ignored_role in guild.ignored.roles {
-            if role_ids.contains(&ignored_role.parse::<u64>().unwrap().to_owned()) {
+        if guild.modules.messagexp {
+            // check if user is on cooldown
+            let last_timestamp = member.timestamps.message_cooldown.unwrap_or(0);
+            let timestamp = chrono::Utc::now().timestamp() * 1000;
+            if is_cooldowned(timestamp as u64, last_timestamp, guild.values.messagecooldown as u64 * 1000) {
                 return ();
             }
+
+            // check for ignored roles, channels or categories
+            let channel_id = msg.channel_id.0;
+
+            let category_id = match msg.channel_id.to_channel(&ctx).await.unwrap() {
+                serenity::model::channel::Channel::Guild(channel) => {
+                    channel.parent_id.unwrap().0
+                }
+                _ => 0,
+            };
+
+            let role_ids = msg
+                .member
+                .unwrap()
+                .roles
+                .iter()
+                .map(|role| role.0)
+                .collect::<Vec<u64>>();
+
+            for ignored_role in guild.ignored.roles {
+                if role_ids.contains(&ignored_role.parse::<u64>().unwrap().to_owned()) {
+                    return ();
+                }
+            }
+
+            if guild
+                .ignored
+                .channels
+                .unwrap()
+                .contains(&channel_id.to_owned().to_string())
+            {
+                return ();
+            }
+
+            if guild
+                .ignored
+                .categories
+                .unwrap()
+                .contains(&category_id.to_owned().to_string())
+            {
+                return ();
+            }
+
+            // calculate boost percentage
+            let guild = Guild::from_id(guild_id).await.unwrap();
+            let boost_percentage = utils::calculate_total_boost_percentage_by_ids(
+                guild.clone(),
+                role_ids,
+                channel_id,
+                Some(category_id),
+            );
+
+            // calculate xp
+            let xp = (guild.values.messagexp as f32 * (boost_percentage + 1.0)) as u32;
+
+            // check if user leveled up, dont send if user is incognito
+            let current_level = calculate_level(&member.xp);
+            let new_level = calculate_level(&(member.xp + xp as u64));
+
+            if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
+                send_level_up(guild.clone(), user_id, current_level, new_level, &ctx, msg.channel_id.0.clone(), &msg.author.name).await;
+            }
+
+            // add xp to user
+            member.xp += xp as u64;
+
+            // set new cooldown
+            member.timestamps.message_cooldown = Some(timestamp as u64);
+
+            // update database
+            let _ = GuildMember::set_xp(guild_id, user_id, &member.xp, &member).await;
         }
 
-        if guild
-            .ignored
-            .channels
-            .unwrap()
-            .contains(&channel_id.to_owned().to_string())
-        {
+        /*
+            Handle autonick logic
+            > Autonick is a module, that adds [Lvl. {level}] to the nickname of a user.
+            > If use_prefix is enabled, [Lvl. {level}] will be added to the beginning of the nickname.
+            > If show_string is enabled, only [{level}] will be added to the end of the nickname.
+        */
+
+        // check if user is a bot
+        if msg.author.bot {
             return ();
         }
 
-        if guild
-            .ignored
-            .categories
+        // get users level
+        let level = calculate_level(&member.xp);
+
+        // check for config modules
+        let use_prefix = guild.modules.autonickuseprefix;
+        let show_string = guild.modules.autonickshowstring;
+
+        // create new nickname
+        let regex = regex::Regex::new(r"\s*\[.*?\]\s*").unwrap();
+        let mut current_nick = ctx
+            .http
+            .get_member(guild_id, user_id)
+            .await
             .unwrap()
-            .contains(&category_id.to_owned().to_string())
-        {
+            .nick
+            .unwrap_or(msg.author.name.clone());
+
+        // replace previous autonick
+        current_nick = regex.replace(&current_nick, "").to_string();
+
+        // if autonick is disabled, reset nickname to previous nickname and return
+        if !guild.modules.autonick {
+            let _ = ctx
+                .http
+                .get_member(guild_id, user_id)
+                .await
+                .unwrap()
+                .edit(&ctx.http, |edit| edit.nickname(current_nick.clone()))
+                .await;
             return ();
         }
 
-        // calculate boost percentage
-        let guild = Guild::from_id(guild_id).await.unwrap();
-        let boost_percentage = utils::calculate_total_boost_percentage_by_ids(
-            guild.clone(),
-            role_ids,
-            channel_id,
-            Some(category_id),
-        );
+        let new_nick = {
+            let lvl_str = if !show_string {
+                format!("[{}]", level)
+            } else {
+                format!("[Lvl. {}]", level)
+            };
 
-        // calculate xp
-        let xp = (guild.values.messagexp as f32 * (boost_percentage + 1.0)) as u32;
+            let new_nick = if use_prefix {
+                format!("{} {}", lvl_str, current_nick)
+            } else {
+                format!("{} {}", current_nick, lvl_str)
+            };
+            new_nick
+        };
 
-        // check if user leveled up, dont send if user is incognito
-        let current_level = calculate_level(&member.xp);
-        let new_level = calculate_level(&(member.xp + xp as u64));
-
-        if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
-            send_level_up(guild, user_id, current_level, new_level, &ctx, msg.channel_id.0, &msg.author.name).await;
+        // check if nickname is too long
+        if new_nick.len() > 32 {
+            log::error!("Nickname of {} is too long", msg.author.name);
+            return ();
         }
 
-        // add xp to user
-        member.xp += xp as u64;
+        // update nickname
+        let _ = ctx
+            .http
+            .get_member(guild_id, user_id)
+            .await
+            .unwrap()
+            .edit(&ctx.http, |edit| edit.nickname(new_nick.clone()))
+            .await;
 
-        // set new cooldown
-        member.timestamps.message_cooldown = Some(timestamp as u64);
-
-        // update database
-        let _ = GuildMember::set_xp(guild_id, user_id, &member.xp, &member).await;
+        return ();
     }
 
     async fn reaction_add(&self, ctx: Context, add_reaction: Reaction) {
