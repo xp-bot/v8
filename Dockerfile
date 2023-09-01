@@ -6,4 +6,4 @@ COPY . .
 RUN cargo install --path xp-bot
 EXPOSE 80
 
-CMD ["cargo", "run", "-p xp-bot", "--release"]
+CMD ["cargo", "run", "--release"]
