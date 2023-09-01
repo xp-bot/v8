@@ -138,8 +138,6 @@ impl XpCommand for VoicetimeCommand {
                 .parent_id,
         );
 
-        log::info!("Boost percentage: {}", boost_percentage);
-
         let voice_xp = calculate_xp_from_voice_time(
             last_timestamp,
             current_timestamp,
@@ -148,12 +146,12 @@ impl XpCommand for VoicetimeCommand {
             boost_percentage,
         );
 
-        let current_level = calculate_level(guild_member.xp);
-        let new_level = calculate_level(guild_member.xp + voice_xp as u64);
+        let current_level = calculate_level(&guild_member.xp);
+        let new_level = calculate_level(&(guild_member.xp + voice_xp as u64));
         let level_difference = new_level - current_level;
         let voice_time = (current_timestamp - last_timestamp as i64) / 1000;
 
-        let username = ctx.cache.user(user_id).unwrap().name;
+        let username = ctx.http.get_user(user_id).await?.name;
 
         // make it days, hours, minutes, seconds
         let days = voice_time / 86400;
@@ -184,9 +182,8 @@ impl XpCommand for VoicetimeCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.title(format!(
-                                "{}'s voicetime in {}",
-                                username,
-                                ctx.cache.guild(command.guild_id.unwrap()).unwrap().name
+                                "{}'s voicetime",
+                                username
                             ));
                             embed.description(time_string);
 

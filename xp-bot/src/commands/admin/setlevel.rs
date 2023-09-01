@@ -85,8 +85,8 @@ impl XpCommand for SetLevelCommand {
         let _ = GuildMember::set_xp(
             command.guild_id.unwrap().into(),
             user_id,
-            required_xp as u64,
-            guild_member,
+            &(required_xp as u64),
+            &guild_member,
         )
         .await?;
 

@@ -68,10 +68,10 @@ impl GuildMember {
         }
     }
 
-    pub async fn set_xp(guild_id: u64, member_id: u64, xp: u64, guild_member: GuildMember) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
+    pub async fn set_xp(guild_id: u64, member_id: u64, xp: &u64, guild_member: &GuildMember) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
         let response = crate::post_json(format!("/guild/{}/member/{}/direct/xp", guild_id, member_id), XPPostBody {
-            xp,
-            userData: guild_member.userData,
+            xp: *xp,
+            userData: guild_member.userData.clone(),
         }).await;
 
         match response {
