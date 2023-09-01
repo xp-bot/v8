@@ -1,5 +1,6 @@
 [![Check Build](https://github.com/xp-bot/raeys/actions/workflows/check.yml/badge.svg)](https://github.com/xp-bot/raeys/actions/workflows/check.yml)
 [![Docker Image](https://github.com/xp-bot/raeys/actions/workflows/deploy.yml/badge.svg)](https://github.com/xp-bot/raeys/actions/workflows/deploy.yml)
+[![Beta Docker Image](https://github.com/xp-bot/v8/actions/workflows/deploy_beta.yml/badge.svg)](https://github.com/xp-bot/v8/actions/workflows/deploy_beta.yml)
 
 # XP v8
 The official XP v8 rewrite built with Rust and serenity-rs.

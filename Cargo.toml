@@ -2,5 +2,6 @@
 
 members = [
     "xp-bot",
-    "xp-db-connector"
+    "xp-db-connector",
+    "vmng"
 ]

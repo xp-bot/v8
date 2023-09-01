@@ -79,7 +79,7 @@ impl XpCommand for RemoveCommand {
 
         let new_amount = guild_member.xp - amount;
 
-        let _ = GuildMember::set_xp(guild_id, user, new_amount, guild_member).await?;
+        let _ = GuildMember::set_xp(guild_id, user, &new_amount, &guild_member).await?;
 
         command
             .create_interaction_response(&ctx.http, |response| {
