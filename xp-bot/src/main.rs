@@ -11,12 +11,12 @@ mod utils;
 #[tokio::main]
 async fn main() {
     let _ = match dotenv::dotenv() {
-        Ok(_) => info!("Loaded .env file"),
+        Ok(_) => println!("Loaded .env file"),
         Err(_) => {
-            info!("No .env file found, using env vars");
+            println!("No .env file found, using env vars");
         }
     };
-    
+
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
     // client initialization

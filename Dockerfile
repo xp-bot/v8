@@ -1,4 +1,4 @@
-FROM rust:1.71
+FROM rust:latest
 
 WORKDIR /usr/src
 COPY . . 
@@ -6,5 +6,4 @@ COPY . .
 RUN cargo install --path xp-bot
 EXPOSE 80
 
-RUN cd xp-bot
 CMD ["cargo", "run", "--release"]
