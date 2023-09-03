@@ -1,3 +1,4 @@
+use rand::Rng;
 use serenity::{model::prelude::{ChannelId, RoleId}, builder::CreateMessage};
 use xp_db_connector::{guild::Guild, user::User};
 
@@ -152,4 +153,20 @@ pub async fn send_level_up(guild: Guild, user_id: u64, current_level: i32, new_l
             message
         })
         .await;
+}
+
+pub struct GameResult {
+    pub roll: u32,
+    pub fish: u32,
+    pub loot: u32,
+}
+
+pub fn calc_games_bulk(roll_xp: u32, fish_xp: u32, loot_xp: u32) -> GameResult {
+    let random_num = rand::thread_rng().gen_range(1..=6);
+
+    GameResult {
+        roll: roll_xp * random_num,
+        fish: fish_xp,
+        loot: loot_xp,
+    }
 }

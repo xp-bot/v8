@@ -17,7 +17,7 @@ pub async fn check_user_vote(user_id: &u64) -> bool {
         let body = response.text().await.unwrap();
         let json: serde_json::Value = serde_json::from_str(&body).unwrap();
 
-        if json["voted"].as_bool().unwrap() {
+        if json["voted"].as_i64() == Some(1) {
             return true;
         }
     }
