@@ -187,6 +187,10 @@ impl EventHandler for Handler {
     }
 
     async fn message(&self, ctx: Context, msg: Message) {
+        if msg.author.bot {
+            return ();
+        }
+
         let user_id = msg.author.id.0;
         let guild_id = msg.guild_id.clone().unwrap().0;
 
