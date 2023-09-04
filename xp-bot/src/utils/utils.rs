@@ -166,7 +166,77 @@ pub fn calc_games_bulk(roll_xp: u32, fish_xp: u32, loot_xp: u32) -> GameResult {
 
     GameResult {
         roll: roll_xp * random_num,
-        fish: fish_xp,
-        loot: loot_xp,
+        fish: game_fish(fish_xp as i64).xp as u32,
+        loot: game_loot(loot_xp as i64).xp as u32,
+    }
+}
+
+pub struct GameEventResult {
+    pub xp: i64,
+    pub item: String,
+}
+
+pub fn game_loot(xp: i64) -> GameEventResult {
+    let random_num = rand::thread_rng().gen_range(1..=10);
+    let mut xp = xp;
+
+    let item = match random_num {
+        1 | 2 | 3 | 4 => "a common",
+        5 | 6 | 7 => {
+            xp *= 2;
+            "a rare"
+        },
+        8 | 9 => {
+            xp *= 3;
+            "an epic"
+        },
+        10 => {
+            xp *= 4;
+            "a legendary"
+        },
+        _ => "a common",
+    };
+
+    GameEventResult {
+        xp,
+        item: item.to_string(),
+    }
+}
+
+pub fn game_fish(xp: i64) -> GameEventResult {
+    let random_num = rand::thread_rng().gen_range(1..=1000);
+    let mut xp = xp;
+
+    let item = match random_num {
+        1..=400 => {
+            xp = 0;
+            "an old shoe"
+        },
+        401..=700 => "a fish with a good personality",
+        701..=900 => {
+            xp *= 3;
+            "an average-sized fish"
+        },
+        901..=998 => {
+            xp *= 4;
+            "a huge fish"
+        },
+        999 => {
+            xp *= 5;
+            "a humongous fish**. Like seriously... that's not gonna fit** "
+        },
+        1000 => {
+            xp *= 5;
+            "a bottle with a note! You can read it [here](https://pastebin.com/X3Fx81wN)"
+        },
+        _ => {
+            xp = 0;
+            "an old shoe"
+        },
+    };
+
+    GameEventResult {
+        xp,
+        item: item.to_string(),
     }
 }

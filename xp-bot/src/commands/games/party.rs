@@ -8,7 +8,8 @@ use serenity::{
         self,
         prelude::{
             application_command::ApplicationCommandInteraction, InteractionResponseType, UserId,
-        }, user::User,
+        },
+        user::User,
     },
     prelude::Context,
 };
@@ -157,6 +158,8 @@ impl XpCommand for PartyCommand {
         if joined.len() < 2 {
             message
                 .edit(ctx, |message| {
+                    message.set_components(CreateComponents::default());
+
                     message.embed(|embed| {
                         embed.title("Party cancelled");
                         embed.description("Not enough people joined the party.");
@@ -206,10 +209,13 @@ impl XpCommand for PartyCommand {
 
                 message.embed(|embed| {
                     embed.title("Party results");
-                    embed.description(format!("{} people participated. **{}** won!", games.len(), users[winner].name));
+                    embed.description(format!(
+                        "{} people participated. **{}** won!",
+                        games.len(),
+                        users[winner].name
+                    ));
 
                     for i in 0..joined.len() {
-
                         embed.field(
                             format!("{}", users[i].name),
                             format!(
