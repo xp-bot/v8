@@ -121,19 +121,30 @@ impl XpCommand for DailyCommand {
 
         let daily_xp = 250;
 
+        let mut old_streak_msg = String::new();
         // reset streak if last daily was claimed more than 48 hours ago
-        let streak =
-            if time_now - guild_member.timestamps.game_daily.unwrap_or(0) as i64 > 86400 * 1000 * 2 {
-                1
-            } else {
-                guild_member.streaks.game_daily.unwrap_or(0) + 1
-            };
+        let streak = if time_now - guild_member.timestamps.game_daily.unwrap_or(0) as i64
+            > 86400 * 1000 * 2
+        {
+            old_streak_msg = format!(
+                "Your old streak was **{}**.",
+                guild_member.streaks.game_daily.unwrap_or(0)
+            );
+            1
+        } else {
+            guild_member.streaks.game_daily.unwrap_or(0) + 1
+        };
 
         guild_member.xp += daily_xp * streak;
         guild_member.timestamps.game_daily = Some(time_now as u64);
         guild_member.streaks.game_daily = Some(streak);
 
-        let _ = GuildMember::set_guild_member(command.guild_id.unwrap().0, command.user.id.0, guild_member).await?;
+        let _ = GuildMember::set_guild_member(
+            command.guild_id.unwrap().0,
+            command.user.id.0,
+            guild_member,
+        )
+        .await?;
 
         command
             .create_interaction_response(ctx, |response| {
@@ -142,9 +153,10 @@ impl XpCommand for DailyCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.description(format!(
-                                "You claimed **{}** xp. Your streak is now **{}**.",
+                                "You claimed **{}** xp. Your streak is now **{}**.\n\n{}",
                                 format_number(daily_xp * streak),
-                                streak
+                                streak,
+                                old_streak_msg
                             ));
                             embed.color(colors::green())
                         })
