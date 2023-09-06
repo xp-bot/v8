@@ -3,7 +3,7 @@ FROM rust:latest
 WORKDIR /usr/src
 COPY . . 
 
-RUN cargo install --path xp-bot
+RUN cargo build --release
 EXPOSE 80
 
-CMD ["cargo", "run", "--release"]
+CMD ["./target/release/xp-bot"]
