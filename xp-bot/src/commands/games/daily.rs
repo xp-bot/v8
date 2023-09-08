@@ -135,7 +135,12 @@ impl XpCommand for DailyCommand {
             guild_member.streaks.game_daily.unwrap_or(0) + 1
         };
 
-        guild_member.xp += daily_xp * streak;
+        let member_xp = daily_xp * streak;
+        guild_member.xp += if member_xp > guild.values.maximumdailyxp as u64 {
+            guild.values.maximumdailyxp as u64
+        } else {
+            member_xp
+        };
         guild_member.timestamps.game_daily = Some(time_now as u64);
         guild_member.streaks.game_daily = Some(streak);
 
