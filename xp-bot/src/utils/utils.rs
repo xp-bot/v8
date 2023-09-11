@@ -3,7 +3,7 @@ use serenity::{
     builder::CreateMessage,
     model::prelude::{ChannelId, RoleId},
 };
-use xp_db_connector::{guild::Guild, user::User};
+use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
 
 use super::{colors, topgg};
 
@@ -325,4 +325,39 @@ pub fn game_fish(xp: i64) -> GameEventResult {
         xp,
         item: item.to_string(),
     }
+}
+
+pub async fn conform_xpc(
+    mut member: GuildMember,
+    ctx: &serenity::client::Context,
+    guild_id: &u64,
+    user_id: &u64,
+) -> GuildMember {
+    member.userData.avatar = Some(
+        ctx.http
+            .get_member(guild_id.to_owned(), user_id.to_owned())
+            .await
+            .unwrap()
+            .avatar
+            .unwrap(),
+    );
+    member.userData.banner = Some(
+        ctx.http
+            .get_member(guild_id.to_owned(), user_id.to_owned())
+            .await
+            .unwrap()
+            .user
+            .banner
+            .unwrap(),
+    );
+    member.userData.username = Some(
+        ctx.http
+            .get_member(guild_id.to_owned(), user_id.to_owned())
+            .await
+            .unwrap()
+            .user
+            .name
+            .clone(),
+    );
+    member
 }

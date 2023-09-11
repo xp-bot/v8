@@ -6,7 +6,7 @@ use serenity::{
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
 
-use crate::{commands, utils::{colors, utils::{is_cooldowned, self, send_level_up, handle_level_roles}, math::calculate_level}};
+use crate::{commands, utils::{colors, utils::{is_cooldowned, self, send_level_up, handle_level_roles, conform_xpc}, math::calculate_level}};
 
 pub struct Handler;
 
@@ -159,7 +159,9 @@ impl EventHandler for Handler {
                     // extract user id from experimental_extract
                     let user_id = experimental_extract.split("custom_id: \"reset_user_xp_input_").collect::<Vec<&str>>()[1].split("\"").collect::<Vec<&str>>()[0].parse::<u64>().unwrap();
                     
-                    let guild_member = GuildMember::from_id(command.guild_id.unwrap().0, user_id).await.unwrap();
+                    let mut guild_member = GuildMember::from_id(command.guild_id.unwrap().0, user_id).await.unwrap();
+
+                    guild_member = conform_xpc(guild_member, &ctx, &command.guild_id.unwrap().0, &user_id).await;
                     let res = GuildMember::set_xp(command.guild_id.unwrap().0, user_id, &0, &guild_member).await.unwrap();
 
                     if res.is_err() {
@@ -284,6 +286,7 @@ impl EventHandler for Handler {
             // set new cooldown
             member.timestamps.message_cooldown = Some(timestamp as u64);
 
+            member = conform_xpc(member, &ctx, &guild_id, &msg.author.id.0).await;
             // update database
             let _ = GuildMember::set_xp(guild_id, user_id, &member.xp, &member).await;
         }
@@ -462,6 +465,7 @@ impl EventHandler for Handler {
 
         // add xp to user
         member.xp += xp as u64;
+        member = conform_xpc(member, &ctx, &guild_id, &add_reaction.user_id.unwrap().0).await;
 
         // update database
         let _ = GuildMember::set_xp(guild_id, user_id, &member.xp, &member).await;
@@ -621,6 +625,7 @@ impl Handler {
 
         // add xp to user
         member.xp += xp as u64;
+        member = conform_xpc(member, &ctx, &guild_id.0, &left.user_id.0).await;
 
         // update database
         let _ = GuildMember::set_xp(guild_id.0, left.user_id.0, &member.xp, &member).await;
@@ -768,6 +773,7 @@ impl Handler {
 
             // add xp to user
             member.xp += xp as u64;
+            member = conform_xpc(member, &ctx, &guild_id.0, &moved.user_id.0).await;
 
             // update database
             let _ = GuildMember::set_xp(guild_id.0, moved.user_id.0, &member.xp, &member).await;
