@@ -186,6 +186,8 @@ pub async fn handle_level_roles(
 
     roles_to_add.sort_by(|a, b| b.level.cmp(&a.level));
 
+    log::info!("Roles to add: {:?}", roles_to_add);
+
     let remove_reached_roles = guild.modules.removereachedlevelroles;
     let single_rank_role = guild.modules.singlerankrole;
 
@@ -206,7 +208,8 @@ pub async fn handle_level_roles(
                     role_id,
                     Some("Single Rank Role module is enabled."),
                 )
-                .await;
+                .await
+                .unwrap();
         }
     }
 
@@ -222,7 +225,8 @@ pub async fn handle_level_roles(
                     role_id,
                     Some("Single Rank Role module is enabled."),
                 )
-                .await;
+                .await
+                .unwrap();
         }
     } else {
         // add all roles
@@ -236,7 +240,8 @@ pub async fn handle_level_roles(
                     role_id,
                     Some("Single Rank Role module is disabled."),
                 )
-                .await;
+                .await
+                .unwrap();
         }
     }
 }
@@ -339,7 +344,7 @@ pub async fn conform_xpc(
             .await
             .unwrap()
             .avatar
-            .unwrap(),
+            .expect(format!("User {} has no avatar.", user_id).as_str()),
     );
     member.userData.banner = Some(
         ctx.http
@@ -348,7 +353,7 @@ pub async fn conform_xpc(
             .unwrap()
             .user
             .banner
-            .unwrap(),
+            .expect(format!("User {} has no banner.", user_id).as_str()),
     );
     member.userData.username = Some(
         ctx.http
