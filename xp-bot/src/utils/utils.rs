@@ -1,8 +1,11 @@
 use rand::Rng;
-use serenity::{model::prelude::{ChannelId, RoleId}, builder::CreateMessage};
+use serenity::{
+    builder::CreateMessage,
+    model::prelude::{ChannelId, RoleId},
+};
 use xp_db_connector::{guild::Guild, user::User};
 
-use super::{topgg, colors};
+use super::{colors, topgg};
 
 pub fn calculate_total_boost_percentage(
     guild: Guild,
@@ -118,16 +121,29 @@ pub async fn eligibility_helper(user_id: u64) -> bool {
 }
 
 pub fn is_cooldowned(timestamp_now: u64, timestamp_then: u64, cooldown: u64) -> bool {
-    if timestamp_now - timestamp_then < cooldown {
+    if (timestamp_now as i64 - timestamp_then as i64) < cooldown as i64 {
         return true;
     }
 
     false
 }
 
-pub async fn send_level_up(guild: Guild, user_id: u64, current_level: i32, new_level: i32, ctx: &serenity::client::Context, msg_channel_id: u64, msg_author_name: &String) {
+pub async fn send_level_up(
+    guild: Guild,
+    user_id: u64,
+    current_level: i32,
+    new_level: i32,
+    ctx: &serenity::client::Context,
+    msg_channel_id: u64,
+    msg_author_name: &String,
+) {
     let channel_id = if !guild.announce.current {
-        guild.logs.levelup.unwrap_or("".to_string()).parse::<u64>().unwrap()
+        guild
+            .logs
+            .levelup
+            .unwrap_or("".to_string())
+            .parse::<u64>()
+            .unwrap()
     } else {
         msg_channel_id
     };
@@ -153,6 +169,76 @@ pub async fn send_level_up(guild: Guild, user_id: u64, current_level: i32, new_l
             message
         })
         .await;
+}
+
+pub async fn handle_level_roles(
+    guild: &Guild,
+    user_id: &u64,
+    new_level: &i32,
+    ctx: &serenity::client::Context,
+    guild_id: u64,
+) {
+    let roles = guild.levelroles.clone();
+    let mut roles_to_add = roles
+        .iter()
+        .filter(|r| r.level <= *new_level)
+        .collect::<Vec<_>>();
+
+    roles_to_add.sort_by(|a, b| b.level.cmp(&a.level));
+
+    let remove_reached_roles = guild.modules.removereachedlevelroles;
+    let single_rank_role = guild.modules.singlerankrole;
+
+    if remove_reached_roles {
+        // the remove_reached_roles module removes levelroles, if the level of the user is lower than before and the levelrole is no longer within the levelrange
+        let roles_to_remove = roles
+            .iter()
+            .filter(|r| r.level < *new_level)
+            .collect::<Vec<_>>();
+
+        for role in roles_to_remove {
+            let role_id = role.id.parse::<u64>().unwrap();
+            let _ = ctx
+                .http
+                .remove_member_role(
+                    guild_id,
+                    *user_id,
+                    role_id,
+                    Some("Single Rank Role module is enabled."),
+                )
+                .await;
+        }
+    }
+
+    if single_rank_role {
+        // only add the highest level role
+        if let Some(role) = roles_to_add.first() {
+            let role_id = role.id.parse::<u64>().unwrap();
+            let _ = ctx
+                .http
+                .add_member_role(
+                    guild_id,
+                    *user_id,
+                    role_id,
+                    Some("Single Rank Role module is enabled."),
+                )
+                .await;
+        }
+    } else {
+        // add all roles
+        for role in roles_to_add {
+            let role_id = role.id.parse::<u64>().unwrap();
+            let _ = ctx
+                .http
+                .add_member_role(
+                    guild_id,
+                    *user_id,
+                    role_id,
+                    Some("Single Rank Role module is disabled."),
+                )
+                .await;
+        }
+    }
 }
 
 pub struct GameResult {
@@ -185,15 +271,15 @@ pub fn game_loot(xp: i64) -> GameEventResult {
         5 | 6 | 7 => {
             xp *= 2;
             "a rare"
-        },
+        }
         8 | 9 => {
             xp *= 3;
             "an epic"
-        },
+        }
         10 => {
             xp *= 4;
             "a legendary"
-        },
+        }
         _ => "a common",
     };
 
@@ -211,28 +297,28 @@ pub fn game_fish(xp: i64) -> GameEventResult {
         1..=400 => {
             xp = 0;
             "an old shoe"
-        },
+        }
         401..=700 => "a fish with a good personality",
         701..=900 => {
             xp *= 3;
             "an average-sized fish"
-        },
+        }
         901..=998 => {
             xp *= 4;
             "a huge fish"
-        },
+        }
         999 => {
             xp *= 5;
             "a humongous fish**. Like seriously... that's not gonna fit** "
-        },
+        }
         1000 => {
             xp *= 5;
             "a bottle with a note! You can read it [here](https://pastebin.com/X3Fx81wN)"
-        },
+        }
         _ => {
             xp = 0;
             "an old shoe"
-        },
+        }
     };
 
     GameEventResult {
