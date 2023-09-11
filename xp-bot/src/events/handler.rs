@@ -1,7 +1,7 @@
 use log::{error, info};
 use serenity::{
     async_trait,
-    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId}, voice::VoiceState},
+    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId, GuildChannel, component::ButtonStyle, ReactionType}, voice::VoiceState, channel},
     prelude::{Context, EventHandler},
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
@@ -186,6 +186,78 @@ impl EventHandler for Handler {
                 _ => {}
             };
         }
+    }
+
+    // XP welcome message when it gets invited to a server
+    async fn guild_create(&self, ctx: Context, guild: serenity::model::guild::Guild, is_new: bool) {
+        if !is_new {
+            return ();
+        }
+
+        // get first text channel and send a message
+        let channels = guild.channels;
+
+        let mut channel_id = 0;
+        for channel in channels {
+            let channel_type = channel.1;
+
+            match channel_type.guild() {
+                Some(channel) => {
+                    if channel.kind == serenity::model::channel::ChannelType::Text {
+                        channel_id = channel.id.0;
+                        break;
+                    }
+                }
+                None => {}
+            };
+        };
+
+        ChannelId(channel_id).send_message(&ctx.http, |message| {
+            message.embed(|embed| {
+                embed.title("Welcome to XP 👋");
+                embed.description("We are happy, that you chose XP for your server!\nXP is a leveling bot, that allows you to reward your members for their activity.\nIf you need help, feel free to join our [support server](https://discord.xp-bot.net)!");
+                embed.field(
+                    "Read our tutorials", 
+                    format!("- {}\n- {}\n- {}\n- {}", 
+                    "[Roles & Boosts](https://xp-bot.net/blog/guide_roles_and_boosts_1662020313458)",
+                    "[Announcements](https://xp-bot.net/blog/guide_announcements_1660342055312)",
+                    "[Values](https://xp-bot.net/blog/guide_values_1656883362214)",
+                    "[XP, Moderation & Game Modules](https://xp-bot.net/blog/guide_xp__game_modules_1655300944128)"
+                    ), false
+                );
+                embed.color(colors::blue());
+                embed
+            });
+            message.components(
+                |components| components
+                    .create_action_row(|action_row| action_row
+                        .create_button(|button| button
+                            .label("Server Dashboard")
+                            .style(ButtonStyle::Link)
+                            .emoji(ReactionType::Unicode("🛠️".to_string()))
+                            .url(format!("https://xp-bot.net/servers/{}", &guild.id.to_string()))
+                        )
+                        .create_button(|button| button
+                            .label("Account Settings")
+                            .style(ButtonStyle::Link)
+                            .emoji(ReactionType::Unicode("🙋".to_string()))
+                            .url("https://xp-bot.net/me")
+                        )
+                        .create_button(|button| button
+                            .label("Premium")
+                            .style(ButtonStyle::Link)
+                            .emoji(ReactionType::Unicode("👑".to_string()))
+                            .url("https://xp-bot.net/premium")
+                        )
+                        .create_button(|button| button
+                            .label("Privacy Policy")
+                            .style(ButtonStyle::Link)
+                            .emoji(ReactionType::Unicode("🔖".to_string()))
+                            .url("https://xp-bot.net/legal/privacy")
+                        )
+                    )
+            )
+        }).await.unwrap();
     }
 
     async fn message(&self, ctx: Context, msg: Message) {
