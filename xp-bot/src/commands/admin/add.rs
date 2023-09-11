@@ -10,9 +10,9 @@ use serenity::{
     },
     prelude::Context,
 };
-use xp_db_connector::guild_member::GuildMember;
+use xp_db_connector::{guild_member::GuildMember, guild::Guild};
 
-use crate::{commands::XpCommand, utils::{colors, utils::format_number}};
+use crate::{commands::XpCommand, utils::{colors, utils::{format_number, handle_level_roles}, math::calculate_level}};
 
 pub struct AddCommand;
 
@@ -79,6 +79,10 @@ impl XpCommand for AddCommand {
         let guild_member = GuildMember::from_id(guild_id, user).await?;
 
         let new_amount = guild_member.xp + amount;
+
+        let guild = Guild::from_id(guild_id).await?;
+        let new_level = calculate_level(&new_amount);
+        handle_level_roles(&guild, &command.user.id.0, &new_level, &ctx, command.guild_id.clone().unwrap().0).await;
 
         let _ = GuildMember::set_xp(guild_id, user, &new_amount, &guild_member).await?;
 

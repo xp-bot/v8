@@ -3,7 +3,7 @@ use serenity::{
     builder::CreateMessage,
     model::prelude::{ChannelId, RoleId},
 };
-use xp_db_connector::{guild::Guild, user::User};
+use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
 
 use super::{colors, topgg};
 
@@ -186,6 +186,8 @@ pub async fn handle_level_roles(
 
     roles_to_add.sort_by(|a, b| b.level.cmp(&a.level));
 
+    log::info!("Roles to add: {:?}", roles_to_add);
+
     let remove_reached_roles = guild.modules.removereachedlevelroles;
     let single_rank_role = guild.modules.singlerankrole;
 
@@ -206,7 +208,8 @@ pub async fn handle_level_roles(
                     role_id,
                     Some("Single Rank Role module is enabled."),
                 )
-                .await;
+                .await
+                .unwrap();
         }
     }
 
@@ -222,7 +225,8 @@ pub async fn handle_level_roles(
                     role_id,
                     Some("Single Rank Role module is enabled."),
                 )
-                .await;
+                .await
+                .unwrap();
         }
     } else {
         // add all roles
@@ -236,7 +240,8 @@ pub async fn handle_level_roles(
                     role_id,
                     Some("Single Rank Role module is disabled."),
                 )
-                .await;
+                .await
+                .unwrap();
         }
     }
 }
@@ -325,4 +330,39 @@ pub fn game_fish(xp: i64) -> GameEventResult {
         xp,
         item: item.to_string(),
     }
+}
+
+pub async fn conform_xpc(
+    mut member: GuildMember,
+    ctx: &serenity::client::Context,
+    guild_id: &u64,
+    user_id: &u64,
+) -> GuildMember {
+    member.userData.avatar = Some(
+        ctx.http
+            .get_member(guild_id.to_owned(), user_id.to_owned())
+            .await
+            .unwrap()
+            .avatar
+            .expect(format!("User {} has no avatar.", user_id).as_str()),
+    );
+    member.userData.banner = Some(
+        ctx.http
+            .get_member(guild_id.to_owned(), user_id.to_owned())
+            .await
+            .unwrap()
+            .user
+            .banner
+            .expect(format!("User {} has no banner.", user_id).as_str()),
+    );
+    member.userData.username = Some(
+        ctx.http
+            .get_member(guild_id.to_owned(), user_id.to_owned())
+            .await
+            .unwrap()
+            .user
+            .name
+            .clone(),
+    );
+    member
 }
