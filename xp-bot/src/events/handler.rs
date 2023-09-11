@@ -6,7 +6,7 @@ use serenity::{
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
 
-use crate::{commands, utils::{colors, utils::{is_cooldowned, self, send_level_up}, math::calculate_level}};
+use crate::{commands, utils::{colors, utils::{is_cooldowned, self, send_level_up, handle_level_roles}, math::calculate_level}};
 
 pub struct Handler;
 
@@ -270,8 +270,12 @@ impl EventHandler for Handler {
             let current_level = calculate_level(&member.xp);
             let new_level = calculate_level(&(member.xp + xp as u64));
 
-            if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
-                send_level_up(guild.clone(), user_id, current_level, new_level, &ctx, msg.channel_id.0.clone(), &msg.author.name).await;
+            if new_level > current_level {
+                handle_level_roles(&guild.clone(), &user_id, &new_level, &ctx, msg.guild_id.clone().unwrap().0).await;
+                
+                if !member.settings.incognito.unwrap_or(false) {
+                    send_level_up(guild.clone(), user_id, current_level, new_level, &ctx, msg.channel_id.0.clone(), &msg.author.name).await;
+                }
             }
 
             // add xp to user
@@ -433,7 +437,7 @@ impl EventHandler for Handler {
         let current_level = calculate_level(&member.xp);
         let new_level = calculate_level(&(member.xp + xp as u64));
 
-        if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
+        if new_level > current_level {
             let username = ctx
                 .http
                 .get_user(user_id)
@@ -442,14 +446,18 @@ impl EventHandler for Handler {
                 .name
                 .to_owned();
 
-            send_level_up(guild,
-                user_id,
-                current_level,
-                new_level,
-                &ctx,
-                add_reaction.channel_id.0,
-                &username,
-            ).await;
+            handle_level_roles(&guild.clone(), &user_id, &new_level, &ctx, add_reaction.guild_id.unwrap().0).await;
+        
+            if !member.settings.incognito.unwrap_or(false) {
+                send_level_up(guild,
+                    user_id,
+                    current_level,
+                    new_level,
+                    &ctx,
+                    add_reaction.channel_id.0,
+                    &username,
+                ).await;
+            }
         }
 
         // add xp to user
@@ -527,7 +535,7 @@ impl Handler {
         let current_level = calculate_level(&member.xp);
         let new_level = calculate_level(&(member.xp + xp as u64));
 
-        if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
+        if new_level > current_level {
             let username = ctx
                 .http
                 .get_user(left.user_id.0)
@@ -536,14 +544,18 @@ impl Handler {
                 .name
                 .to_owned();
 
-            send_level_up(guild.clone(),
-                left.user_id.0,
-                current_level,
-                new_level,
-                &ctx,
-                old.channel_id.unwrap().0,
-                &username,
-            ).await;
+            handle_level_roles(&guild.clone(), &left.user_id.0, &new_level, &ctx, old.guild_id.unwrap().0).await;
+
+            if !member.settings.incognito.unwrap_or(false) {
+                send_level_up(guild.clone(),
+                    left.user_id.0,
+                    current_level,
+                    new_level,
+                    &ctx,
+                    old.channel_id.unwrap().0,
+                    &username,
+                ).await;
+            }
         }
 
         // send summary of voice time
@@ -670,7 +682,7 @@ impl Handler {
             let current_level = calculate_level(&member.xp);
             let new_level = calculate_level(&(member.xp + xp as u64));
 
-            if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
+            if new_level > current_level {
                 let username = ctx
                     .http
                     .get_user(moved.user_id.0)
@@ -679,14 +691,18 @@ impl Handler {
                     .name
                     .to_owned();
 
-                send_level_up(guild.clone(),
-                    moved.user_id.0,
-                    current_level,
-                    new_level,
-                    &ctx,
-                    moved.channel_id.unwrap().0,
-                    &username,
-                ).await;
+                handle_level_roles(&guild.clone(), &moved.user_id.0, &new_level, &ctx, moved.guild_id.unwrap().0).await;
+
+                if !member.settings.incognito.unwrap_or(false) {
+                    send_level_up(guild.clone(),
+                        moved.user_id.0,
+                        current_level,
+                        new_level,
+                        &ctx,
+                        moved.channel_id.unwrap().0,
+                        &username,
+                    ).await;
+                }
             }
 
             // send summary of voice time
