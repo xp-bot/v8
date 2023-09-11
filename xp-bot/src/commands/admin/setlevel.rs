@@ -85,7 +85,6 @@ impl XpCommand for SetLevelCommand {
 
         let guild = Guild::from_id(command.guild_id.unwrap().into()).await?;
         let new_level = calculate_level(&(required_xp as u64));
-        handle_level_roles(&guild, &command.user.id.0, &new_level, &ctx, command.guild_id.clone().unwrap().0).await;
 
         let _ = GuildMember::set_xp(
             command.guild_id.unwrap().into(),
@@ -113,6 +112,8 @@ impl XpCommand for SetLevelCommand {
                     })
             })
             .await;
+
+        handle_level_roles(&guild, &user_id, &new_level, &ctx, command.guild_id.clone().unwrap().0).await;
 
         Ok(())
     }

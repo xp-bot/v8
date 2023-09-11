@@ -82,7 +82,6 @@ impl XpCommand for AddCommand {
 
         let guild = Guild::from_id(guild_id).await?;
         let new_level = calculate_level(&new_amount);
-        handle_level_roles(&guild, &command.user.id.0, &new_level, &ctx, command.guild_id.clone().unwrap().0).await;
 
         let _ = GuildMember::set_xp(guild_id, user, &new_amount, &guild_member).await?;
 
@@ -103,6 +102,9 @@ impl XpCommand for AddCommand {
                     })
             })
             .await?;
+
+        handle_level_roles(&guild, &user, &new_level, &ctx, command.guild_id.clone().unwrap().0).await;
+
 
         Ok(())
     }

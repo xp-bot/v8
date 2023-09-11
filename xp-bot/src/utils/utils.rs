@@ -191,7 +191,7 @@ pub async fn handle_level_roles(
     let remove_reached_roles = guild.modules.removereachedlevelroles;
     let single_rank_role = guild.modules.singlerankrole;
 
-    if remove_reached_roles {
+    if remove_reached_roles || single_rank_role {
         // the remove_reached_roles module removes levelroles, if the level of the user is lower than before and the levelrole is no longer within the levelrange
         let roles_to_remove = roles
             .iter()
@@ -206,7 +206,7 @@ pub async fn handle_level_roles(
                     guild_id,
                     *user_id,
                     role_id,
-                    Some("Single Rank Role module is enabled."),
+                    Some("Removed reached roles module is enabled."),
                 )
                 .await
                 .unwrap();
