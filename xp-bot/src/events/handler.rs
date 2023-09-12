@@ -575,7 +575,7 @@ impl Handler {
 
     pub async fn voice_leave(ctx: Context, guild_id: GuildId, old: Option<VoiceState>, left: VoiceState) {
         let timestamp = chrono::Utc::now().timestamp() * 1000;
-        let user = User::from_id(left.user_id.0).await.unwrap();
+        let mut user = User::from_id(left.user_id.0).await.unwrap();
         let mut member = GuildMember::from_id(guild_id.0, left.user_id.0).await.unwrap();
         let guild = Guild::from_id(guild_id.0).await.unwrap();
         let log_channel_id = guild.clone().logs.voicetime;
@@ -701,6 +701,10 @@ impl Handler {
 
         // update database
         let _ = GuildMember::set_xp(guild_id.0, left.user_id.0, &member.xp, &member).await;
+
+        // invalidate timestamp
+        user.timestamps.join_voicechat = None;
+        let _ = User::set(left.user_id.0, user).await;
     }
 
     /*
@@ -724,7 +728,7 @@ impl Handler {
 
         if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 {
             let timestamp = chrono::Utc::now().timestamp() * 1000;
-            let user = User::from_id(moved.user_id.0).await.unwrap();
+            let mut user = User::from_id(moved.user_id.0).await.unwrap();
             let mut member = GuildMember::from_id(guild_id.0, moved.user_id.0).await.unwrap();
             let guild = Guild::from_id(guild_id.0).await.unwrap();
             let log_channel_id = guild.clone().logs.voicetime;
@@ -849,6 +853,10 @@ impl Handler {
 
             // update database
             let _ = GuildMember::set_xp(guild_id.0, moved.user_id.0, &member.xp, &member).await;
+
+            // invalidate timestamp
+            user.timestamps.join_voicechat = None;
+            let _ = User::set(moved.user_id.0, user).await;
         }
 
         // check if moved from voicechat is the guilds afk channel
