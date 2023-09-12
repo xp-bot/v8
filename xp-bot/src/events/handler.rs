@@ -566,6 +566,11 @@ impl Handler {
             return ();
         }
 
+        // check if voice channel is ignored
+        if guild.ignored.channels.unwrap().contains(&joined.channel_id.unwrap().0.to_string()) {
+            return ();
+        }
+
         // set new timestamp
         user.timestamps.join_voicechat = Some(timestamp as u64);
 
@@ -582,6 +587,11 @@ impl Handler {
 
         // check if voice module is enabled
         if !guild.modules.voicexp {
+            return ();
+        }
+
+        // check if voice channel is ignored
+        if guild.clone().ignored.channels.unwrap().contains(&left.channel_id.unwrap().0.to_string()) {
             return ();
         }
 
@@ -726,15 +736,22 @@ impl Handler {
             },
         };
 
-        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 {
+        let guild = Guild::from_id(guild_id.0).await.unwrap();
+
+        // check if moved to voicechat is the guilds afk channel or ignore channel
+        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 || guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
             let timestamp = chrono::Utc::now().timestamp() * 1000;
             let mut user = User::from_id(moved.user_id.0).await.unwrap();
             let mut member = GuildMember::from_id(guild_id.0, moved.user_id.0).await.unwrap();
-            let guild = Guild::from_id(guild_id.0).await.unwrap();
             let log_channel_id = guild.clone().logs.voicetime;
 
             // check if voice module is enabled
             if !guild.modules.voicexp {
+                return ();
+            }
+
+            // check if voice channel is ignored
+            if guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
                 return ();
             }
 
@@ -859,14 +876,18 @@ impl Handler {
             let _ = User::set(moved.user_id.0, user).await;
         }
 
-        // check if moved from voicechat is the guilds afk channel
-        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 {
+        // check if moved from voicechat is the guilds afk channel or ignore channel
+        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 || guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
             let timestamp = chrono::Utc::now().timestamp() * 1000;
             let mut user = User::from_id(moved.user_id.0).await.unwrap();
-            let guild = Guild::from_id(guild_id.0).await.unwrap();
 
             // check if voice module is enabled
             if !guild.modules.voicexp {
+                return ();
+            }
+            
+            // check if voice channel is ignored
+            if guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
                 return ();
             }
 
