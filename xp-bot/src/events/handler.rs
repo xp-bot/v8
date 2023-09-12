@@ -1,7 +1,7 @@
 use log::{error, info};
 use serenity::{
     async_trait,
-    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId, component::ButtonStyle, ReactionType}, voice::VoiceState},
+    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId, component::ButtonStyle, ReactionType, Member, RoleId}, voice::VoiceState},
     prelude::{Context, EventHandler},
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
@@ -258,6 +258,24 @@ impl EventHandler for Handler {
                     )
             )
         }).await.unwrap();
+    }
+
+    async fn guild_member_addition(&self, ctx: Context, mut new_member: Member) {
+        let guild = Guild::from_id(new_member.guild_id.0).await.unwrap();
+
+        // get role that is assigned to level -1
+        let autorole = guild.levelroles.iter().find(|role| role.level == -1);
+        
+        if autorole.is_none() {
+            return ();
+        }
+
+        let autorole = autorole.unwrap();
+
+        log::info!("Assigning autorole {} to {}", autorole.id, new_member.user.name);
+
+        // assign autorole
+        let _ = new_member.add_role(&ctx.http, RoleId(autorole.id.parse::<u64>().unwrap())).await;
     }
 
     async fn message(&self, ctx: Context, msg: Message) {
