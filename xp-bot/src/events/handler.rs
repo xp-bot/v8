@@ -1,7 +1,7 @@
 use log::{error, info};
 use serenity::{
     async_trait,
-    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId, component::ButtonStyle, ReactionType}, voice::VoiceState},
+    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId, component::ButtonStyle, ReactionType, Member, RoleId}, voice::VoiceState},
     prelude::{Context, EventHandler},
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
@@ -258,6 +258,24 @@ impl EventHandler for Handler {
                     )
             )
         }).await.unwrap();
+    }
+
+    async fn guild_member_addition(&self, ctx: Context, mut new_member: Member) {
+        let guild = Guild::from_id(new_member.guild_id.0).await.unwrap();
+
+        // get role that is assigned to level -1
+        let autorole = guild.levelroles.iter().find(|role| role.level == -1);
+        
+        if autorole.is_none() {
+            return ();
+        }
+
+        let autorole = autorole.unwrap();
+
+        log::info!("Assigning autorole {} to {}", autorole.id, new_member.user.name);
+
+        // assign autorole
+        let _ = new_member.add_role(&ctx.http, RoleId(autorole.id.parse::<u64>().unwrap())).await;
     }
 
     async fn message(&self, ctx: Context, msg: Message) {
@@ -566,6 +584,11 @@ impl Handler {
             return ();
         }
 
+        // check if voice channel is ignored
+        if guild.ignored.channels.unwrap().contains(&joined.channel_id.unwrap().0.to_string()) {
+            return ();
+        }
+
         // set new timestamp
         user.timestamps.join_voicechat = Some(timestamp as u64);
 
@@ -575,13 +598,18 @@ impl Handler {
 
     pub async fn voice_leave(ctx: Context, guild_id: GuildId, old: Option<VoiceState>, left: VoiceState) {
         let timestamp = chrono::Utc::now().timestamp() * 1000;
-        let user = User::from_id(left.user_id.0).await.unwrap();
+        let mut user = User::from_id(left.user_id.0).await.unwrap();
         let mut member = GuildMember::from_id(guild_id.0, left.user_id.0).await.unwrap();
         let guild = Guild::from_id(guild_id.0).await.unwrap();
         let log_channel_id = guild.clone().logs.voicetime;
 
         // check if voice module is enabled
         if !guild.modules.voicexp {
+            return ();
+        }
+
+        // check if voice channel is ignored
+        if guild.clone().ignored.channels.unwrap().contains(&left.channel_id.unwrap().0.to_string()) {
             return ();
         }
 
@@ -701,6 +729,10 @@ impl Handler {
 
         // update database
         let _ = GuildMember::set_xp(guild_id.0, left.user_id.0, &member.xp, &member).await;
+
+        // invalidate timestamp
+        user.timestamps.join_voicechat = None;
+        let _ = User::set(left.user_id.0, user).await;
     }
 
     /*
@@ -722,15 +754,22 @@ impl Handler {
             },
         };
 
-        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 {
+        let guild = Guild::from_id(guild_id.0).await.unwrap();
+
+        // check if moved to voicechat is the guilds afk channel or ignore channel
+        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 || guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
             let timestamp = chrono::Utc::now().timestamp() * 1000;
-            let user = User::from_id(moved.user_id.0).await.unwrap();
+            let mut user = User::from_id(moved.user_id.0).await.unwrap();
             let mut member = GuildMember::from_id(guild_id.0, moved.user_id.0).await.unwrap();
-            let guild = Guild::from_id(guild_id.0).await.unwrap();
             let log_channel_id = guild.clone().logs.voicetime;
 
             // check if voice module is enabled
             if !guild.modules.voicexp {
+                return ();
+            }
+
+            // check if voice channel is ignored
+            if guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
                 return ();
             }
 
@@ -849,16 +888,24 @@ impl Handler {
 
             // update database
             let _ = GuildMember::set_xp(guild_id.0, moved.user_id.0, &member.xp, &member).await;
+
+            // invalidate timestamp
+            user.timestamps.join_voicechat = None;
+            let _ = User::set(moved.user_id.0, user).await;
         }
 
-        // check if moved from voicechat is the guilds afk channel
-        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 {
+        // check if moved from voicechat is the guilds afk channel or ignore channel
+        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 || guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
             let timestamp = chrono::Utc::now().timestamp() * 1000;
             let mut user = User::from_id(moved.user_id.0).await.unwrap();
-            let guild = Guild::from_id(guild_id.0).await.unwrap();
 
             // check if voice module is enabled
             if !guild.modules.voicexp {
+                return ();
+            }
+            
+            // check if voice channel is ignored
+            if guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
                 return ();
             }
 

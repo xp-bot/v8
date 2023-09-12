@@ -136,11 +136,13 @@ impl XpCommand for DailyCommand {
         };
 
         let member_xp = daily_xp * streak;
-        guild_member.xp += if member_xp > guild.values.maximumdailyxp as u64 {
+        let xp_to_add = if member_xp > guild.values.maximumdailyxp as u64 {
             guild.values.maximumdailyxp as u64
         } else {
             member_xp
         };
+        guild_member.xp += xp_to_add;
+
         guild_member.timestamps.game_daily = Some(time_now as u64);
         guild_member.streaks.game_daily = Some(streak);
 
@@ -159,7 +161,7 @@ impl XpCommand for DailyCommand {
                         message.embed(|embed| {
                             embed.description(format!(
                                 "You claimed **{}** xp. Your streak is now **{}**.\n\n{}",
-                                format_number(daily_xp * streak),
+                                format_number(xp_to_add),
                                 streak,
                                 old_streak_msg
                             ));
