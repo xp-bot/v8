@@ -272,8 +272,6 @@ impl EventHandler for Handler {
 
         let autorole = autorole.unwrap();
 
-        log::info!("Assigning autorole {} to {}", autorole.id, new_member.user.name);
-
         // assign autorole
         let _ = new_member.add_role(&ctx.http, RoleId(autorole.id.parse::<u64>().unwrap())).await;
     }

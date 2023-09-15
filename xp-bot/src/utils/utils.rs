@@ -369,5 +369,6 @@ pub async fn conform_xpc(
             .name
             .clone(),
     );
+
     member
 }
