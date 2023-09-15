@@ -60,7 +60,7 @@ impl XpCommand for DailyCommand {
             return Ok(());
         }
 
-        if !eligibility_helper(command.user.id.0).await {
+        if !eligibility_helper(command.user.id.0, &command.guild_id.unwrap().0).await {
             command
                 .create_interaction_response(ctx, |response| {
                     response

@@ -104,8 +104,13 @@ pub fn format_number(number: u64) -> String {
     formatted_number.chars().rev().collect::<String>()
 }
 
-pub async fn eligibility_helper(user_id: u64) -> bool {
+pub async fn eligibility_helper(user_id: u64, guild_id: &u64) -> bool {
     let user = User::is_premium(user_id).await.unwrap_or(false);
+    let vote_free = Guild::is_vote_free(guild_id).await.unwrap_or(false);
+
+    if vote_free {
+        return true;
+    }
 
     if user {
         return true;
@@ -364,5 +369,6 @@ pub async fn conform_xpc(
             .name
             .clone(),
     );
+
     member
 }
