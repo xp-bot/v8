@@ -609,7 +609,7 @@ impl Handler {
         }
 
         // check if voice channel is ignored
-        if guild.clone().ignored.channels.unwrap().contains(&left.channel_id.unwrap().0.to_string()) {
+        if guild.clone().ignored.channels.unwrap().contains(&old.clone().unwrap().channel_id.unwrap().0.to_string()) {
             return ();
         }
 
