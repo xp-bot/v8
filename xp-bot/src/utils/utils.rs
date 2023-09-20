@@ -3,7 +3,9 @@ use serenity::{
     builder::CreateMessage,
     model::prelude::{ChannelId, RoleId},
 };
-use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
+use xp_db_connector::{
+    guild::Guild, guild_member::GuildMember, guild_premium::GuildPremium, user::User,
+};
 
 use super::{colors, topgg};
 
@@ -105,19 +107,17 @@ pub fn format_number(number: u64) -> String {
 }
 
 pub async fn eligibility_helper(user_id: u64, guild_id: &u64) -> bool {
-    let user = User::is_premium(user_id).await.unwrap_or(false);
-    let vote_free = Guild::is_vote_free(guild_id).await.unwrap_or(false);
-
-    if vote_free {
+    let guild = GuildPremium::from_id(guild_id.to_owned()).await.unwrap();
+    if guild.voteFree {
         return true;
     }
 
+    let user = User::is_premium(user_id).await.unwrap_or(false);
     if user {
         return true;
     }
 
     let voted = topgg::check_user_vote(&user_id).await;
-
     if voted {
         return true;
     }
@@ -344,22 +344,31 @@ pub async fn conform_xpc(
     user_id: &u64,
 ) -> GuildMember {
     member.userData.avatar = Some(
-        ctx.http
+        match ctx
+            .http
             .get_member(guild_id.to_owned(), user_id.to_owned())
             .await
             .unwrap()
             .avatar
-            .expect(format!("User {} has no avatar.", user_id).as_str()),
+        {
+            Some(avatar) => avatar,
+            None => "".to_string(),
+        },
     );
+
     member.userData.banner = Some(
-        ctx.http
+        match ctx
+            .http
             .get_member(guild_id.to_owned(), user_id.to_owned())
             .await
             .unwrap()
-            .user
-            .banner
-            .expect(format!("User {} has no banner.", user_id).as_str()),
+            .avatar
+        {
+            Some(banner) => banner,
+            None => "".to_string(),
+        },
     );
+
     member.userData.username = Some(
         ctx.http
             .get_member(guild_id.to_owned(), user_id.to_owned())

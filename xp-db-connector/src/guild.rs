@@ -132,10 +132,4 @@ impl Guild {
 
         Ok(response.premium)
     }
-
-    pub async fn is_vote_free(guild_id: &u64) -> DbResult<bool> {
-        let response = crate::get_json::<GuildPremiumResponse>(format!("/guild/{}/premium", guild_id)).await?;
-
-        Ok(response.voteFree)
-    }
 }
