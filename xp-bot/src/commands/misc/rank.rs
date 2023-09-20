@@ -4,8 +4,9 @@ use serenity::{
     model::prelude::{application_command::ApplicationCommandInteraction, InteractionResponseType},
     prelude::Context,
 };
+use xp_db_connector::guild_member::GuildMember;
 
-use crate::commands::XpCommand;
+use crate::{commands::XpCommand, utils::colors};
 
 pub struct RankCommand;
 
@@ -36,15 +37,37 @@ impl XpCommand for RankCommand {
         ctx: &Context,
         command: &ApplicationCommandInteraction,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let mut _user_id = command.user.id.0;
+        let mut user_id = command.user.id.0;
 
         match command.data.options.first() {
             Some(option) => {
                 if let Some(user) = Some(option.value.as_ref().unwrap().clone()) {
-                    _user_id = user.as_str().unwrap().parse::<u64>().unwrap();
+                    user_id = user.as_str().unwrap().parse::<u64>().unwrap();
                 }
             }
             None => {}
+        }
+
+        let user = GuildMember::from_id(command.guild_id.unwrap().0, user_id.clone())
+            .await
+            .unwrap();
+
+        if user.settings.incognito.unwrap_or(false) {
+            command
+                .create_interaction_response(&ctx.http, |response| {
+                    response
+                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                        .interaction_response_data(|message| {
+                            message.embed(|embed| {
+                                embed.description(format!("This user is incognito."));
+                                embed.color(colors::red())
+                            });
+                            message.ephemeral(true);
+                            message
+                        })
+                })
+                .await?;
+            return Ok(());
         }
 
         command
@@ -55,7 +78,7 @@ impl XpCommand for RankCommand {
                         message.content(format!(
                             "https://bot-api.xp-bot.net/rank/{}/{}?cache={}",
                             command.guild_id.unwrap().0,
-                            _user_id,
+                            user_id,
                             chrono::Utc::now().timestamp()
                         ))
                     })
