@@ -344,22 +344,31 @@ pub async fn conform_xpc(
     user_id: &u64,
 ) -> GuildMember {
     member.userData.avatar = Some(
-        ctx.http
+        match ctx
+            .http
             .get_member(guild_id.to_owned(), user_id.to_owned())
             .await
             .unwrap()
             .avatar
-            .expect(format!("User {} has no avatar.", user_id).as_str()),
+        {
+            Some(avatar) => avatar,
+            None => "".to_string(),
+        },
     );
+    
     member.userData.banner = Some(
-        ctx.http
+        match ctx
+            .http
             .get_member(guild_id.to_owned(), user_id.to_owned())
             .await
             .unwrap()
-            .user
-            .banner
-            .expect(format!("User {} has no banner.", user_id).as_str()),
+            .avatar
+        {
+            Some(banner) => banner,
+            None => "".to_string(),
+        },
     );
+
     member.userData.username = Some(
         ctx.http
             .get_member(guild_id.to_owned(), user_id.to_owned())
