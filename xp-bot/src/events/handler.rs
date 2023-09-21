@@ -412,7 +412,7 @@ impl EventHandler for Handler {
         current_nick = regex.replace(&current_nick, "").to_string();
 
         // if autonick is disabled, reset nickname to previous nickname and return
-        if !guild.modules.autonick {
+        if !guild.modules.autonick || member.settings.incognito.unwrap_or(false) {
             let _ = ctx
                 .http
                 .get_member(guild_id, user_id)
