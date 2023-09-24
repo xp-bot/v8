@@ -32,7 +32,7 @@ impl EventHandler for Handler {
         info!("Cache is ready!");
 
         // register slash commands
-        /* for guild in guilds {
+        for guild in guilds {
             let commands = GuildId::set_application_commands(&guild, &ctx.http, |commands| {
                 for command in commands::COMMANDS {
                     commands.create_application_command(|c| command.register(c));
@@ -46,7 +46,7 @@ impl EventHandler for Handler {
             }
 
             info!("Registered commands for guild {}", guild);
-        } */
+        }
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
