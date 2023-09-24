@@ -10,7 +10,7 @@ use crate::{
     commands::XpCommand,
     utils::{
         colors,
-        utils::{eligibility_helper, format_number, is_cooldowned},
+        utils::{eligibility_helper, format_number, game_loot, is_cooldowned},
     },
 };
 
@@ -58,7 +58,7 @@ impl XpCommand for LootCommand {
             return Ok(());
         }
 
-        if !eligibility_helper(command.user.id.0).await {
+        if !eligibility_helper(command.user.id.0, &command.guild_id.unwrap().0).await {
             command
                 .create_interaction_response(ctx, |response| {
                     response
@@ -117,8 +117,10 @@ impl XpCommand for LootCommand {
             return Ok(());
         }
 
+        let game_result = game_loot(guild.values.lootXP as i64);
+
         // assign xp
-        guild_member.xp += guild.values.lootXP as u64;
+        guild_member.xp += game_result.xp as u64;
 
         // set new cooldown
         guild_member.timestamps.game_loot = Some(time_now as u64);
@@ -136,8 +138,9 @@ impl XpCommand for LootCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.description(format!(
-                                ":package: | You looted a crate and got **{}** xp!",
-                                format_number(guild.values.lootXP as u64),
+                                ":package: | You found **{}** crate and got **{}** xp!",
+                                game_result.item,
+                                format_number(game_result.xp as u64),
                             ));
                             embed.color(colors::green())
                         })

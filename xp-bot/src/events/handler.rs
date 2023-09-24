@@ -1,12 +1,12 @@
 use log::{error, info};
 use serenity::{
     async_trait,
-    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId}, voice::VoiceState},
+    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId, component::ButtonStyle, ReactionType, Member, RoleId, GuildChannel}, voice::VoiceState},
     prelude::{Context, EventHandler},
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
 
-use crate::{commands, utils::{colors, utils::{is_cooldowned, self, send_level_up}, math::calculate_level}};
+use crate::{commands, utils::{colors, utils::{is_cooldowned, self, send_level_up, handle_level_roles, conform_xpc}, math::calculate_level}};
 
 pub struct Handler;
 
@@ -32,7 +32,7 @@ impl EventHandler for Handler {
         info!("Cache is ready!");
 
         // register slash commands
-        for guild in guilds {
+        /* for guild in guilds {
             let commands = GuildId::set_application_commands(&guild, &ctx.http, |commands| {
                 for command in commands::COMMANDS {
                     commands.create_application_command(|c| command.register(c));
@@ -46,7 +46,7 @@ impl EventHandler for Handler {
             }
 
             info!("Registered commands for guild {}", guild);
-        }
+        } */
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
@@ -159,7 +159,9 @@ impl EventHandler for Handler {
                     // extract user id from experimental_extract
                     let user_id = experimental_extract.split("custom_id: \"reset_user_xp_input_").collect::<Vec<&str>>()[1].split("\"").collect::<Vec<&str>>()[0].parse::<u64>().unwrap();
                     
-                    let guild_member = GuildMember::from_id(command.guild_id.unwrap().0, user_id).await.unwrap();
+                    let mut guild_member = GuildMember::from_id(command.guild_id.unwrap().0, user_id).await.unwrap();
+
+                    guild_member = conform_xpc(guild_member, &ctx, &command.guild_id.unwrap().0, &user_id).await;
                     let res = GuildMember::set_xp(command.guild_id.unwrap().0, user_id, &0, &guild_member).await.unwrap();
 
                     if res.is_err() {
@@ -186,7 +188,99 @@ impl EventHandler for Handler {
         }
     }
 
+    // XP welcome message when it gets invited to a server
+    async fn guild_create(&self, ctx: Context, guild: serenity::model::guild::Guild, is_new: bool) {
+        if !is_new {
+            return ();
+        }
+
+        // get first text channel and send a message
+        let channels = guild.channels;
+
+        let mut channel_id = 0;
+        for channel in channels {
+            let channel_type = channel.1;
+
+            match channel_type.guild() {
+                Some(channel) => {
+                    if channel.kind == serenity::model::channel::ChannelType::Text {
+                        channel_id = channel.id.0;
+                        break;
+                    }
+                }
+                None => {}
+            };
+        };
+
+        ChannelId(channel_id).send_message(&ctx.http, |message| {
+            message.embed(|embed| {
+                embed.title("Welcome to XP 👋");
+                embed.description("We are happy, that you chose XP for your server!\nXP is a leveling bot, that allows you to reward your members for their activity.\nIf you need help, feel free to join our [support server](https://discord.xp-bot.net)!");
+                embed.field(
+                    "Read our tutorials", 
+                    format!("- {}\n- {}\n- {}\n- {}", 
+                    "[Roles & Boosts](https://xp-bot.net/blog/guide_roles_and_boosts_1662020313458)",
+                    "[Announcements](https://xp-bot.net/blog/guide_announcements_1660342055312)",
+                    "[Values](https://xp-bot.net/blog/guide_values_1656883362214)",
+                    "[XP, Moderation & Game Modules](https://xp-bot.net/blog/guide_xp__game_modules_1655300944128)"
+                    ), false
+                );
+                embed.color(colors::blue());
+                embed
+            });
+            message.components(
+                |components| components
+                    .create_action_row(|action_row| action_row
+                        .create_button(|button| button
+                            .label("Server Dashboard")
+                            .style(ButtonStyle::Link)
+                            .emoji(ReactionType::Unicode("🛠️".to_string()))
+                            .url(format!("https://xp-bot.net/servers/{}", &guild.id.to_string()))
+                        )
+                        .create_button(|button| button
+                            .label("Account Settings")
+                            .style(ButtonStyle::Link)
+                            .emoji(ReactionType::Unicode("🙋".to_string()))
+                            .url("https://xp-bot.net/me")
+                        )
+                        .create_button(|button| button
+                            .label("Premium")
+                            .style(ButtonStyle::Link)
+                            .emoji(ReactionType::Unicode("👑".to_string()))
+                            .url("https://xp-bot.net/premium")
+                        )
+                        .create_button(|button| button
+                            .label("Privacy Policy")
+                            .style(ButtonStyle::Link)
+                            .emoji(ReactionType::Unicode("🔖".to_string()))
+                            .url("https://xp-bot.net/legal/privacy")
+                        )
+                    )
+            )
+        }).await.unwrap();
+    }
+
+    async fn guild_member_addition(&self, ctx: Context, mut new_member: Member) {
+        let guild = Guild::from_id(new_member.guild_id.0).await.unwrap();
+
+        // get role that is assigned to level -1
+        let autorole = guild.levelroles.iter().find(|role| role.level == -1);
+        
+        if autorole.is_none() {
+            return ();
+        }
+
+        let autorole = autorole.unwrap();
+
+        // assign autorole
+        let _ = new_member.add_role(&ctx.http, RoleId(autorole.id.parse::<u64>().unwrap())).await;
+    }
+
     async fn message(&self, ctx: Context, msg: Message) {
+        if msg.author.bot {
+            return ();
+        }
+
         let user_id = msg.author.id.0;
         let guild_id = msg.guild_id.clone().unwrap().0;
 
@@ -266,8 +360,12 @@ impl EventHandler for Handler {
             let current_level = calculate_level(&member.xp);
             let new_level = calculate_level(&(member.xp + xp as u64));
 
-            if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
-                send_level_up(guild.clone(), user_id, current_level, new_level, &ctx, msg.channel_id.0.clone(), &msg.author.name).await;
+            if new_level > current_level {
+                handle_level_roles(&guild.clone(), &user_id, &new_level, &ctx, msg.guild_id.clone().unwrap().0).await;
+                
+                if !member.settings.incognito.unwrap_or(false) {
+                    send_level_up(guild.clone(), user_id, current_level, new_level, &ctx, msg.channel_id.0.clone(), &msg.author.name).await;
+                }
             }
 
             // add xp to user
@@ -276,6 +374,7 @@ impl EventHandler for Handler {
             // set new cooldown
             member.timestamps.message_cooldown = Some(timestamp as u64);
 
+            member = conform_xpc(member, &ctx, &guild_id, &msg.author.id.0).await;
             // update database
             let _ = GuildMember::set_xp(guild_id, user_id, &member.xp, &member).await;
         }
@@ -313,7 +412,7 @@ impl EventHandler for Handler {
         current_nick = regex.replace(&current_nick, "").to_string();
 
         // if autonick is disabled, reset nickname to previous nickname and return
-        if !guild.modules.autonick {
+        if !guild.modules.autonick || member.settings.incognito.unwrap_or(false) {
             let _ = ctx
                 .http
                 .get_member(guild_id, user_id)
@@ -429,7 +528,7 @@ impl EventHandler for Handler {
         let current_level = calculate_level(&member.xp);
         let new_level = calculate_level(&(member.xp + xp as u64));
 
-        if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
+        if new_level > current_level {
             let username = ctx
                 .http
                 .get_user(user_id)
@@ -438,18 +537,23 @@ impl EventHandler for Handler {
                 .name
                 .to_owned();
 
-            send_level_up(guild,
-                user_id,
-                current_level,
-                new_level,
-                &ctx,
-                add_reaction.channel_id.0,
-                &username,
-            ).await;
+            handle_level_roles(&guild.clone(), &user_id, &new_level, &ctx, add_reaction.guild_id.unwrap().0).await;
+        
+            if !member.settings.incognito.unwrap_or(false) {
+                send_level_up(guild,
+                    user_id,
+                    current_level,
+                    new_level,
+                    &ctx,
+                    add_reaction.channel_id.0,
+                    &username,
+                ).await;
+            }
         }
 
         // add xp to user
         member.xp += xp as u64;
+        member = conform_xpc(member, &ctx, &guild_id, &add_reaction.user_id.unwrap().0).await;
 
         // update database
         let _ = GuildMember::set_xp(guild_id, user_id, &member.xp, &member).await;
@@ -478,6 +582,11 @@ impl Handler {
             return ();
         }
 
+        // check if voice channel is ignored
+        if guild.ignored.channels.unwrap().contains(&joined.channel_id.unwrap().0.to_string()) {
+            return ();
+        }
+
         // set new timestamp
         user.timestamps.join_voicechat = Some(timestamp as u64);
 
@@ -487,13 +596,18 @@ impl Handler {
 
     pub async fn voice_leave(ctx: Context, guild_id: GuildId, old: Option<VoiceState>, left: VoiceState) {
         let timestamp = chrono::Utc::now().timestamp() * 1000;
-        let user = User::from_id(left.user_id.0).await.unwrap();
+        let mut user = User::from_id(left.user_id.0).await.unwrap();
         let mut member = GuildMember::from_id(guild_id.0, left.user_id.0).await.unwrap();
         let guild = Guild::from_id(guild_id.0).await.unwrap();
         let log_channel_id = guild.clone().logs.voicetime;
 
         // check if voice module is enabled
         if !guild.modules.voicexp {
+            return ();
+        }
+
+        // check if voice channel is ignored
+        if guild.clone().ignored.channels.unwrap().contains(&old.clone().unwrap().channel_id.unwrap().0.to_string()) {
             return ();
         }
 
@@ -523,7 +637,7 @@ impl Handler {
         let current_level = calculate_level(&member.xp);
         let new_level = calculate_level(&(member.xp + xp as u64));
 
-        if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
+        if new_level > current_level {
             let username = ctx
                 .http
                 .get_user(left.user_id.0)
@@ -532,14 +646,18 @@ impl Handler {
                 .name
                 .to_owned();
 
-            send_level_up(guild.clone(),
-                left.user_id.0,
-                current_level,
-                new_level,
-                &ctx,
-                old.channel_id.unwrap().0,
-                &username,
-            ).await;
+            handle_level_roles(&guild.clone(), &left.user_id.0, &new_level, &ctx, old.guild_id.unwrap().0).await;
+
+            if !member.settings.incognito.unwrap_or(false) {
+                send_level_up(guild.clone(),
+                    left.user_id.0,
+                    current_level,
+                    new_level,
+                    &ctx,
+                    old.channel_id.unwrap().0,
+                    &username,
+                ).await;
+            }
         }
 
         // send summary of voice time
@@ -605,9 +723,14 @@ impl Handler {
 
         // add xp to user
         member.xp += xp as u64;
+        member = conform_xpc(member, &ctx, &guild_id.0, &left.user_id.0).await;
 
         // update database
         let _ = GuildMember::set_xp(guild_id.0, left.user_id.0, &member.xp, &member).await;
+
+        // invalidate timestamp
+        user.timestamps.join_voicechat = None;
+        let _ = User::set(left.user_id.0, user).await;
     }
 
     /*
@@ -629,15 +752,22 @@ impl Handler {
             },
         };
 
-        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 {
+        let guild = Guild::from_id(guild_id.0).await.unwrap();
+
+        // check if moved to voicechat is the guilds afk channel or ignore channel
+        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 || guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
             let timestamp = chrono::Utc::now().timestamp() * 1000;
-            let user = User::from_id(moved.user_id.0).await.unwrap();
+            let mut user = User::from_id(moved.user_id.0).await.unwrap();
             let mut member = GuildMember::from_id(guild_id.0, moved.user_id.0).await.unwrap();
-            let guild = Guild::from_id(guild_id.0).await.unwrap();
             let log_channel_id = guild.clone().logs.voicetime;
 
             // check if voice module is enabled
             if !guild.modules.voicexp {
+                return ();
+            }
+
+            // check if voice channel is ignored
+            if guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
                 return ();
             }
 
@@ -666,7 +796,7 @@ impl Handler {
             let current_level = calculate_level(&member.xp);
             let new_level = calculate_level(&(member.xp + xp as u64));
 
-            if new_level > current_level && !member.settings.incognito.unwrap_or(false) {
+            if new_level > current_level {
                 let username = ctx
                     .http
                     .get_user(moved.user_id.0)
@@ -675,14 +805,18 @@ impl Handler {
                     .name
                     .to_owned();
 
-                send_level_up(guild.clone(),
-                    moved.user_id.0,
-                    current_level,
-                    new_level,
-                    &ctx,
-                    moved.channel_id.unwrap().0,
-                    &username,
-                ).await;
+                handle_level_roles(&guild.clone(), &moved.user_id.0, &new_level, &ctx, moved.guild_id.unwrap().0).await;
+
+                if !member.settings.incognito.unwrap_or(false) {
+                    send_level_up(guild.clone(),
+                        moved.user_id.0,
+                        current_level,
+                        new_level,
+                        &ctx,
+                        moved.channel_id.unwrap().0,
+                        &username,
+                    ).await;
+                }
             }
 
             // send summary of voice time
@@ -748,19 +882,28 @@ impl Handler {
 
             // add xp to user
             member.xp += xp as u64;
+            member = conform_xpc(member, &ctx, &guild_id.0, &moved.user_id.0).await;
 
             // update database
             let _ = GuildMember::set_xp(guild_id.0, moved.user_id.0, &member.xp, &member).await;
+
+            // invalidate timestamp
+            user.timestamps.join_voicechat = None;
+            let _ = User::set(moved.user_id.0, user).await;
         }
 
-        // check if moved from voicechat is the guilds afk channel
-        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 {
+        // check if moved from voicechat is the guilds afk channel or ignore channel
+        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 || guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
             let timestamp = chrono::Utc::now().timestamp() * 1000;
             let mut user = User::from_id(moved.user_id.0).await.unwrap();
-            let guild = Guild::from_id(guild_id.0).await.unwrap();
 
             // check if voice module is enabled
             if !guild.modules.voicexp {
+                return ();
+            }
+            
+            // check if voice channel is ignored
+            if guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
                 return ();
             }
 
@@ -772,3 +915,4 @@ impl Handler {
         }
     }
 }
+

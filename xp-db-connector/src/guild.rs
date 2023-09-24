@@ -97,6 +97,13 @@ pub struct GuildAnnounce {
     pub ping: bool,
 }
 
+#[allow(non_snake_case)]
+#[derive(Deserialize, Clone, Debug)]
+pub struct GuildPremiumResponse {
+    pub premium: bool,
+    pub voteFree: bool,
+}
+
 impl Guild {
     pub async fn from_id(guild_id: u64) -> DbResult<Guild> {
         let response = crate::get_json::<GuildResponse>(format!("/guild/{}", guild_id)).await?;
@@ -118,5 +125,11 @@ impl Guild {
         crate::delete_json(format!("/guild/{}/members/xp", guild_id)).await?;
 
         Ok(Ok(()))
+    }
+
+    pub async fn is_premium(guild_id: &u64) -> DbResult<bool> {
+        let response = crate::get_json::<GuildPremiumResponse>(format!("/guild/{}/premium", guild_id)).await?;
+
+        Ok(response.premium)
     }
 }

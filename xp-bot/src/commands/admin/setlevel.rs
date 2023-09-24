@@ -10,11 +10,11 @@ use serenity::{
     },
     prelude::Context,
 };
-use xp_db_connector::guild_member::GuildMember;
+use xp_db_connector::{guild_member::GuildMember, guild::Guild};
 
 use crate::{
     commands::XpCommand,
-    utils::{colors, math::get_required_xp},
+    utils::{colors, math::{get_required_xp, calculate_level}, utils::handle_level_roles},
 };
 
 pub struct SetLevelCommand;
@@ -82,6 +82,10 @@ impl XpCommand for SetLevelCommand {
         let required_xp = get_required_xp(level as i32);
 
         let guild_member = GuildMember::from_id(command.guild_id.unwrap().into(), user_id).await?;
+
+        let guild = Guild::from_id(command.guild_id.unwrap().into()).await?;
+        let new_level = calculate_level(&(required_xp as u64));
+
         let _ = GuildMember::set_xp(
             command.guild_id.unwrap().into(),
             user_id,
@@ -108,6 +112,8 @@ impl XpCommand for SetLevelCommand {
                     })
             })
             .await;
+
+        handle_level_roles(&guild, &user_id, &new_level, &ctx, command.guild_id.clone().unwrap().0).await;
 
         Ok(())
     }

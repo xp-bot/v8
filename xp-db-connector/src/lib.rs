@@ -19,7 +19,7 @@ where
 
     let response = client
         .get(format!("{}{}", base_url, url))
-        .header("access", api_auth)
+        .header("Authorization", format!("Bearer {}", api_auth))
         .send()
         .await?
         .json::<T>()
@@ -39,7 +39,7 @@ where
 
     let _ = client
         .post(format!("{}{}", base_url, url))
-        .header("access", api_auth)
+        .header("Authorization", format!("Bearer {}", api_auth))
         .json(&body)
         .send()
         .await?;
@@ -58,7 +58,7 @@ where
 
     let _ = client
         .patch(format!("{}{}", base_url, url))
-        .header("access", api_auth)
+        .header("Authorization", format!("Bearer {}", api_auth))
         .json(&body)
         .send()
         .await?;
@@ -74,7 +74,7 @@ async fn delete_json(url: String) -> Result<(), reqwest::Error> {
 
     let _ = client
         .delete(format!("{}{}", base_url, url))
-        .header("access", api_auth)
+        .header("Authorization", format!("Bearer {}", api_auth))
         .send()
         .await?;
 

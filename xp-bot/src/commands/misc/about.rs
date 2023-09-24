@@ -21,6 +21,10 @@ impl XpCommand for AboutCommand {
     }
 
     async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let time_then = std::time::Instant::now();
+        let _ = ctx.http.get_gateway().await?;
+        let latency = time_then.elapsed().as_millis();
+
         let _ = command.create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -32,7 +36,7 @@ impl XpCommand for AboutCommand {
                             .field("Official Support Server", "[discord.gg](https://discord.xp-bot.net)", true)
                             .field("Vote", "[top.gg](https://vote.xp-bot.net)", true)
                             .field("Status", "[status](https://status.xp-bot.net)", true)
-                            .footer(|footer| footer.text(format!("© 2020-2023 namespace.media - Shard {}", ctx.shard_id + 1)))
+                            .footer(|footer| footer.text(format!("© 2020-2023 namespace.media - Shard {} - {}ms", ctx.shard_id + 1, latency)))
                             .colour(colors::blue())
     
                     ).components(

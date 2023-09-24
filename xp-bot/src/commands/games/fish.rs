@@ -10,7 +10,7 @@ use crate::{
     commands::XpCommand,
     utils::{
         colors,
-        utils::{eligibility_helper, is_cooldowned, format_number},
+        utils::{eligibility_helper, is_cooldowned, format_number, game_fish},
     },
 };
 
@@ -58,7 +58,7 @@ impl XpCommand for FishCommand {
             return Ok(());
         }
 
-        if !eligibility_helper(command.user.id.0).await {
+        if !eligibility_helper(command.user.id.0, &command.guild_id.unwrap().0).await {
             command
                 .create_interaction_response(ctx, |response| {
                     response
@@ -115,8 +115,10 @@ impl XpCommand for FishCommand {
             return Ok(());
         }
 
+        let game_result = game_fish(guild.values.fishXP as i64);
+
         // assign xp
-        guild_member.xp += guild.values.fishXP as u64;
+        guild_member.xp += game_result.xp as u64;
 
         // set new cooldown
         guild_member.timestamps.game_fish = Some(time_now as u64);
@@ -134,8 +136,9 @@ impl XpCommand for FishCommand {
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
                             embed.description(format!(
-                                ":fishing_pole_and_fish: | You caught a fish and gained **{}** xp!",
-                                format_number(guild.values.fishXP as u64)
+                                ":fishing_pole_and_fish: | You got **{}** xp for finding **{}**.",
+                                format_number(game_result.xp as u64),
+                                game_result.item
                             ));
                             embed.color(colors::green())
                         })
