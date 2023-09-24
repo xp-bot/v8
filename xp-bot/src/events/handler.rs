@@ -1,7 +1,7 @@
 use log::{error, info};
 use serenity::{
     async_trait,
-    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId, component::ButtonStyle, ReactionType, Member, RoleId}, voice::VoiceState},
+    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId, component::ButtonStyle, ReactionType, Member, RoleId, GuildChannel}, voice::VoiceState},
     prelude::{Context, EventHandler},
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
@@ -32,7 +32,7 @@ impl EventHandler for Handler {
         info!("Cache is ready!");
 
         // register slash commands
-        for guild in guilds {
+        /* for guild in guilds {
             let commands = GuildId::set_application_commands(&guild, &ctx.http, |commands| {
                 for command in commands::COMMANDS {
                     commands.create_application_command(|c| command.register(c));
@@ -46,7 +46,7 @@ impl EventHandler for Handler {
             }
 
             info!("Registered commands for guild {}", guild);
-        }
+        } */
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
@@ -915,3 +915,4 @@ impl Handler {
         }
     }
 }
+
