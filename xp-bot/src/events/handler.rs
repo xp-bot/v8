@@ -563,6 +563,34 @@ impl EventHandler for Handler {
         thread.id.join_thread(ctx.http).await.unwrap();
     }
 
+    // reset xp of user when they leave the server if module is enabled
+    async fn guild_member_removal(
+        &self,
+        _ctx: Context,
+        guild_id: GuildId,
+        user: serenity::model::prelude::User,
+        _member_data_if_available: Option<Member>,
+    ) {
+        let guild = Guild::from_id(guild_id.0).await.unwrap();
+
+        // check if user is a bot
+        if user.bot {
+            return ();
+        }
+
+        if !guild.modules.resetonleave {
+            return ();
+        }
+
+        let mut member = GuildMember::from_id(guild_id.0, user.id.0).await.unwrap();
+
+        // reset xp
+        member.xp = 0;
+
+        // update database
+        let _ = GuildMember::set_xp(guild_id.0, user.id.0, &member.xp, &member).await;
+    }
+
     async fn voice_state_update(&self, ctx: Context, old: Option<VoiceState>, new: VoiceState) {
         // check if the event is a join, leave or move event
         if old.is_none() && new.channel_id.is_some() {
