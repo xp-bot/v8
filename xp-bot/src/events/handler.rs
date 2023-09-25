@@ -2,7 +2,7 @@ use log::{error, info};
 use serenity::{
     async_trait,
     model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId, component::ButtonStyle, ReactionType, Member, RoleId, GuildChannel}, voice::VoiceState},
-    prelude::{Context, EventHandler},
+    prelude::{Context, EventHandler, Mentionable},
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
 
@@ -213,6 +213,13 @@ impl EventHandler for Handler {
         };
 
         ChannelId(channel_id).send_message(&ctx.http, |message| {
+            let inviter = match guild.members.get(&guild.owner_id) {
+                Some(member) => member.mention().to_string(),
+                None => "".to_string(),
+            };
+
+            message.content(format!("{}", inviter));
+
             message.embed(|embed| {
                 embed.title("Welcome to XP 👋");
                 embed.description("We are happy, that you chose XP for your server!\nXP is a leveling bot, that allows you to reward your members for their activity.\nIf you need help, feel free to join our [support server](https://discord.xp-bot.net)!");
