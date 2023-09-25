@@ -559,6 +559,10 @@ impl EventHandler for Handler {
         let _ = GuildMember::set_xp(guild_id, user_id, &member.xp, &member).await;
     }
 
+    async fn thread_create(&self, ctx: Context, thread: GuildChannel) {
+        thread.id.join_thread(ctx.http).await.unwrap();
+    }
+
     async fn voice_state_update(&self, ctx: Context, old: Option<VoiceState>, new: VoiceState) {
         // check if the event is a join, leave or move event
         if old.is_none() && new.channel_id.is_some() {
