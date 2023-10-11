@@ -181,21 +181,26 @@ impl XpCommand for VoicetimeCommand {
                     .kind(InteractionResponseType::ChannelMessageWithSource)
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
-                            embed.title(format!(
-                                "{}'s voicetime",
-                                username
-                            ));
+                            embed.title(format!("{}'s voicetime", username));
                             embed.description(time_string);
 
                             if level_difference > 0 {
                                 embed.field(
                                     "Level",
-                                    format!("**{} → {}**", crate::utils::utils::format_number(current_level as u64), crate::utils::utils::format_number(new_level as u64)),
+                                    format!(
+                                        "**{} → {}**",
+                                        crate::utils::utils::format_number(current_level as u64),
+                                        crate::utils::utils::format_number(new_level as u64)
+                                    ),
                                     true,
                                 );
                             }
 
-                            embed.field("XP", crate::utils::utils::format_number(voice_xp as u64), true);
+                            embed.field(
+                                "XP",
+                                crate::utils::utils::format_number(voice_xp as u64),
+                                true,
+                            );
                             embed.field("", "", true);
                             embed.color(colors::blue());
                             embed

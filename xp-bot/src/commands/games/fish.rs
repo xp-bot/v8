@@ -10,7 +10,7 @@ use crate::{
     commands::XpCommand,
     utils::{
         colors,
-        utils::{eligibility_helper, is_cooldowned, format_number, game_fish},
+        utils::{eligibility_helper, format_number, game_fish, is_cooldowned},
     },
 };
 

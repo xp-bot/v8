@@ -37,7 +37,11 @@ impl XpCommand for SettingsCommand {
             })
     }
 
-    async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn exec(
+        &self,
+        ctx: &Context,
+        command: &ApplicationCommandInteraction,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let guild_id = command.guild_id.unwrap();
         let option = command.data.options[0].clone();
 
@@ -295,16 +299,8 @@ impl XpCommand for SettingsCommand {
                     }
                 });
 
-                fields.push((
-                    "Autorole".to_string(),
-                    autorole,
-                    false,
-                ));
-                fields.push((
-                    "Levelroles".to_string(),
-                    levelroles,
-                    false,
-                ));
+                fields.push(("Autorole".to_string(), autorole, false));
+                fields.push(("Levelroles".to_string(), levelroles, false));
             }
             "boosts" => {
                 option_value = "Boosts".to_string();
@@ -348,21 +344,9 @@ impl XpCommand for SettingsCommand {
                         });
                 }
 
-                fields.push((
-                    "Boosted roles".to_string(),
-                    boostroles,
-                    false,
-                ));
-                fields.push((
-                    "Boosted channels".to_string(),
-                    boostchannels,
-                    false,
-                ));
-                fields.push((
-                    "Boosted categories".to_string(),
-                    boostcategories,
-                    false,
-                ));
+                fields.push(("Boosted roles".to_string(), boostroles, false));
+                fields.push(("Boosted channels".to_string(), boostchannels, false));
+                fields.push(("Boosted categories".to_string(), boostcategories, false));
             }
             "ignores" => {
                 option_value = "Ignores".to_string();
@@ -406,21 +390,9 @@ impl XpCommand for SettingsCommand {
                         });
                 }
 
-                fields.push((
-                    "Ignored roles".to_string(),
-                    ignoredroles,
-                    false,
-                ));
-                fields.push((
-                    "Ignored channels".to_string(),
-                    ignoredchannels,
-                    false,
-                ));
-                fields.push((
-                    "Ignored categories".to_string(),
-                    ignoredcategories,
-                    false,
-                ));
+                fields.push(("Ignored roles".to_string(), ignoredroles, false));
+                fields.push(("Ignored channels".to_string(), ignoredchannels, false));
+                fields.push(("Ignored categories".to_string(), ignoredcategories, false));
             }
             _ => {}
         }
@@ -449,7 +421,14 @@ impl XpCommand for SettingsCommand {
         }
 
         // check if user has manage_server permission
-        if !command.member.as_ref().unwrap().permissions.unwrap().manage_guild() {
+        if !command
+            .member
+            .as_ref()
+            .unwrap()
+            .permissions
+            .unwrap()
+            .manage_guild()
+        {
             return Ok(());
         }
 

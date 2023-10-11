@@ -2,7 +2,7 @@ use log::{error, info};
 use serenity::{
     async_trait,
     model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId, component::ButtonStyle, ReactionType, Member, RoleId, GuildChannel}, voice::VoiceState},
-    prelude::{Context, EventHandler, Mentionable},
+    prelude::{Context, EventHandler},
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
 
@@ -598,26 +598,38 @@ impl EventHandler for Handler {
         } else if old.is_some() && new.channel_id.is_none() {
             Handler::voice_leave(ctx, new.guild_id.unwrap(), old, new).await;
         } else if old.is_some() && new.channel_id.is_some() {
-            Handler::voice_move(ctx, new.guild_id.unwrap(), new).await;
+            // check if event is channel move event
+            if old.clone().unwrap().channel_id.is_none() {
+                Handler::voice_join(ctx, new.guild_id.unwrap(), &new).await;
+            } else if new.channel_id.unwrap() != old.clone().unwrap().channel_id.unwrap() {
+                let guild = Guild::from_id(new.guild_id.unwrap().0).await.unwrap();
+
+                // handle ignored channels
+                match new.channel_id {
+                    Some(channel_id) => {
+                        // check if channel is ignored
+                        if guild.clone().ignored.channels.unwrap().contains(&channel_id.0.to_string()) {
+                            Handler::voice_leave(ctx.clone(), new.clone().guild_id.unwrap(), old, new.clone()).await;
+                        }else if guild.modules.ignoreafk {
+                            // check if channel is afk channel
+                            if channel_id.0 == new.guild_id.unwrap().clone().to_guild_cached(ctx.cache.clone()).unwrap().afk_channel_id.unwrap().0 {
+                                Handler::voice_leave(ctx.clone(), new.clone().guild_id.unwrap(), old, new.clone()).await;
+                            }
+                        }
+                    }
+                    None => {}
+                }
+
+                Handler::voice_join(ctx, new.guild_id.unwrap(), &new).await;
+            }
         }
     }
 }
 
 impl Handler {
-    pub async fn voice_join(_ctx: Context, guild_id: GuildId, joined: &VoiceState) {
+    pub async fn voice_join(_ctx: Context, _guild_id: GuildId, joined: &VoiceState) {
         let timestamp = chrono::Utc::now().timestamp() * 1000;
         let mut user = User::from_id(joined.user_id.0).await.unwrap();
-        let guild = Guild::from_id(guild_id.0).await.unwrap();
-
-        // check if voice module is enabled
-        if !guild.modules.voicexp {
-            return ();
-        }
-
-        // check if voice channel is ignored
-        if guild.ignored.channels.unwrap().contains(&joined.channel_id.unwrap().0.to_string()) {
-            return ();
-        }
 
         // set new timestamp
         user.timestamps.join_voicechat = Some(timestamp as u64);
@@ -638,9 +650,24 @@ impl Handler {
             return ();
         }
 
-        // check if voice channel is ignored
-        if guild.clone().ignored.channels.unwrap().contains(&old.clone().unwrap().channel_id.unwrap().0.to_string()) {
-            return ();
+        // handle ignored channels
+        match old.clone().unwrap().channel_id {
+            Some(channel_id) => {
+                // check if channel is ignored
+                if guild.clone().ignored.channels.unwrap().contains(&channel_id.0.to_string()) {
+                    return ();
+                }
+
+                if guild.modules.ignoreafk {
+                    // check if channel is afk channel
+                    if channel_id.0 == guild_id.clone().to_guild_cached(ctx.cache.clone()).unwrap().afk_channel_id.unwrap().0 {
+                        return ();
+                    }
+                }
+            }
+            None => {
+                log::warn!("Could not get channel id of user {}", left.user_id.0);
+            }
         }
 
         // calculate time in voice chat
@@ -764,187 +791,4 @@ impl Handler {
         user.timestamps.join_voicechat = None;
         let _ = User::set(left.user_id.0, user).await;
     }
-
-    /*
-        IMPORTANT: Subject to change, we will build a better implementation in the future
-        TODO: voice_move should be refactored in the future, as it's basically just code duplication
-    */ 
-    pub async fn voice_move(ctx: Context, guild_id: GuildId, moved: VoiceState) {
-        // (!) can also be mute/unmute, deafen/undeafen or self mute/unmute, self deafen/undeafen
-
-        // check if moved to voicechat is the guilds afk channel
-        let afk_channel_id = match ctx.cache.guild(guild_id) {
-            Some(guild) => guild.afk_channel_id,
-            None => {
-                ctx.http
-                    .get_guild(guild_id.0)
-                    .await
-                    .unwrap()
-                    .afk_channel_id
-            },
-        };
-
-        let guild = Guild::from_id(guild_id.0).await.unwrap();
-
-        // check if moved to voicechat is the guilds afk channel or ignore channel
-        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 || guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
-            let timestamp = chrono::Utc::now().timestamp() * 1000;
-            let mut user = User::from_id(moved.user_id.0).await.unwrap();
-            let mut member = GuildMember::from_id(guild_id.0, moved.user_id.0).await.unwrap();
-            let log_channel_id = guild.clone().logs.voicetime;
-
-            // check if voice module is enabled
-            if !guild.modules.voicexp {
-                return ();
-            }
-
-            // check if voice channel is ignored
-            if guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
-                return ();
-            }
-
-            // calculate time in voice chat
-            let last_timestamp = user.timestamps.join_voicechat.unwrap_or(0);
-            let time_in_voicechat = (timestamp - last_timestamp as i64 - guild.values.voicejoincooldown as i64 * 1000) / 1000;
-            let time_in_voicechat = if time_in_voicechat < 0 { 0 } else { time_in_voicechat };
-
-            // calculate boost percentage
-            let boost_percentage = utils::calculate_total_boost_percentage_by_ids(
-                guild.clone(),
-                moved.member.unwrap().roles.iter().map(|role| role.0).collect::<Vec<u64>>(),
-                moved.channel_id.unwrap().0,
-                Some(match moved.channel_id.unwrap().to_channel(&ctx).await.unwrap() {
-                    serenity::model::channel::Channel::Guild(channel) => {
-                        channel.parent_id.unwrap().0
-                    }
-                    _ => 0,
-                }),
-            );
-
-            // calculate xp
-            let xp = ((guild.values.voicexp as f32 * (time_in_voicechat as f32 / 60.)) * (boost_percentage + 1.0)) as u32;
-
-            // check if user leveled up, dont send if user is incognito
-            let current_level = calculate_level(&member.xp);
-            let new_level = calculate_level(&(member.xp + xp as u64));
-
-            if new_level > current_level {
-                let username = ctx
-                    .http
-                    .get_user(moved.user_id.0)
-                    .await
-                    .unwrap()
-                    .name
-                    .to_owned();
-
-                handle_level_roles(&guild.clone(), &moved.user_id.0, &new_level, &ctx, moved.guild_id.unwrap().0).await;
-
-                if !member.settings.incognito.unwrap_or(false) {
-                    send_level_up(guild.clone(),
-                        moved.user_id.0,
-                        current_level,
-                        new_level,
-                        &ctx,
-                        moved.channel_id.unwrap().0,
-                        &username,
-                    ).await;
-                }
-            }
-
-            // send summary of voice time
-            if guild.logs.voicetime.clone().is_some() {
-                let voice_time = (timestamp - last_timestamp as i64) / 1000;
-
-                // make it days, hours, minutes, seconds
-                let days = voice_time / 86400;
-                let hours = (voice_time - days * 86400) / 3600;
-                let minutes = (voice_time - days * 86400 - hours * 3600) / 60;
-                let seconds = voice_time - days * 86400 - hours * 3600 - minutes * 60;
-
-                let time_string = if days > 0 {
-                    format!(
-                        "**{}** days, **{}** hours, **{}** minutes, **{}** seconds",
-                        days, hours, minutes, seconds
-                    )
-                } else if hours > 0 {
-                    format!(
-                        "**{}** hours, **{}** minutes, **{}** seconds",
-                        hours, minutes, seconds
-                    )
-                } else if minutes > 0 {
-                    format!("**{}** minutes, **{}** seconds", minutes, seconds)
-                } else {
-                    format!("**{}** seconds", seconds)
-                }; 
-
-                // calculate level difference
-                let current_level = calculate_level(&member.xp);
-                let new_level = calculate_level(&(member.xp + xp as u64));
-                let level_difference = new_level - current_level;
-
-                let requested_user = ctx.http.get_user(moved.user_id.0).await.unwrap().name.clone();
-
-                // send message
-                let _ = ChannelId(log_channel_id.clone().unwrap().parse::<u64>().unwrap())
-                    .send_message(&ctx.http, |message| {
-                        message.embed(|embed| {
-                            embed.title(format!(
-                                "{}'s voicetime",
-                                requested_user
-                                
-                            ));
-                            embed.description(time_string);
-
-                            if level_difference > 0 {
-                                embed.field(
-                                    "Level",
-                                    format!("**{} → {}**", crate::utils::utils::format_number(current_level as u64), crate::utils::utils::format_number(new_level as u64)),
-                                    true,
-                                );
-                            }
-
-                            embed.field("XP", crate::utils::utils::format_number(xp as u64), true);
-                            embed.field("", "", true);
-                            embed.color(colors::blue());
-                            embed
-                        })
-                    })
-                    .await;
-            }
-
-            // add xp to user
-            member.xp += xp as u64;
-            member = conform_xpc(member, &ctx, &guild_id.0, &moved.user_id.0).await;
-
-            // update database
-            let _ = GuildMember::set_xp(guild_id.0, moved.user_id.0, &member.xp, &member).await;
-
-            // invalidate timestamp
-            user.timestamps.join_voicechat = None;
-            let _ = User::set(moved.user_id.0, user).await;
-        }
-
-        // check if moved from voicechat is the guilds afk channel or ignore channel
-        if moved.channel_id.unwrap().0 == afk_channel_id.unwrap().0 || guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
-            let timestamp = chrono::Utc::now().timestamp() * 1000;
-            let mut user = User::from_id(moved.user_id.0).await.unwrap();
-
-            // check if voice module is enabled
-            if !guild.modules.voicexp {
-                return ();
-            }
-            
-            // check if voice channel is ignored
-            if guild.clone().ignored.channels.unwrap().contains(&moved.channel_id.unwrap().0.to_string()) {
-                return ();
-            }
-
-            // set new timestamp
-            user.timestamps.join_voicechat = Some(timestamp as u64);
-
-            // update database
-            let _ = User::set(moved.user_id.0, user).await;
-        }
-    }
 }
-

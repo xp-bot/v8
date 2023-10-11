@@ -16,7 +16,8 @@ pub fn calculate_xp_from_voice_time(
         return 0;
     }
 
-    (voice_time as f32 * (voice_xp as f32 / 60 as f32)) as u32 * (boost_percentage + 1.0).floor() as u32
+    (voice_time as f32 * (voice_xp as f32 / 60 as f32)) as u32
+        * (boost_percentage + 1.0).floor() as u32
 }
 
 pub fn calculate_level(xp: &u64) -> i32 {

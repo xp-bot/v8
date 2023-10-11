@@ -1,6 +1,8 @@
 use serenity::{
-    async_trait, builder::CreateApplicationCommand,
-    model::prelude::{application_command::ApplicationCommandInteraction, InteractionResponseType}, prelude::Context,
+    async_trait,
+    builder::CreateApplicationCommand,
+    model::prelude::{application_command::ApplicationCommandInteraction, InteractionResponseType},
+    prelude::Context,
 };
 use xp_db_connector::guild_member::GuildMember;
 
@@ -56,21 +58,25 @@ impl XpCommand for IncognitoCommand {
 
         let _ = GuildMember::set_guild_member(guild_id, command.user.id.0, guild_member).await?;
 
-        command.create_interaction_response(&ctx.http, |response| {
-            response
-                .kind(InteractionResponseType::ChannelMessageWithSource)
-                .interaction_response_data(|message| {
-                    message.embed(|embed| {
-                        embed.description(format!(
-                            "Your incognito status has been set to **{}**.",
-                            if enabled { "enabled" } else { "disabled" }
-                        ));
-                        embed.color(colors::green());
-                        embed
-                    }).ephemeral(true);
-                    message
-                })
-        }).await?;
+        command
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        message
+                            .embed(|embed| {
+                                embed.description(format!(
+                                    "Your incognito status has been set to **{}**.",
+                                    if enabled { "enabled" } else { "disabled" }
+                                ));
+                                embed.color(colors::green());
+                                embed
+                            })
+                            .ephemeral(true);
+                        message
+                    })
+            })
+            .await?;
 
         Ok(())
     }

@@ -10,9 +10,16 @@ use serenity::{
     },
     prelude::Context,
 };
-use xp_db_connector::{guild_member::GuildMember, guild::Guild};
+use xp_db_connector::{guild::Guild, guild_member::GuildMember};
 
-use crate::{commands::XpCommand, utils::{colors, utils::{format_number, handle_level_roles}, math::calculate_level}};
+use crate::{
+    commands::XpCommand,
+    utils::{
+        colors,
+        math::calculate_level,
+        utils::{format_number, handle_level_roles},
+    },
+};
 
 pub struct RemoveCommand;
 
@@ -89,20 +96,30 @@ impl XpCommand for RemoveCommand {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
                     .interaction_response_data(|message| {
-                        message.embed(|embed| {
-                            embed.description(format!(
-                                "Successfully removed **{}** xp from <@{}>.",
-                                format_number(amount as u64), user
-                            ));
-                            embed.color(colors::green());
-                            embed
-                        }).ephemeral(true);
+                        message
+                            .embed(|embed| {
+                                embed.description(format!(
+                                    "Successfully removed **{}** xp from <@{}>.",
+                                    format_number(amount as u64),
+                                    user
+                                ));
+                                embed.color(colors::green());
+                                embed
+                            })
+                            .ephemeral(true);
                         message
                     })
             })
             .await?;
 
-        handle_level_roles(&guild, &user, &new_level, &ctx, command.guild_id.clone().unwrap().0).await;
+        handle_level_roles(
+            &guild,
+            &user,
+            &new_level,
+            &ctx,
+            command.guild_id.clone().unwrap().0,
+        )
+        .await;
 
         Ok(())
     }

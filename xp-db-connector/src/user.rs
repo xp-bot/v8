@@ -71,7 +71,8 @@ impl User {
     }
 
     pub async fn is_premium(user_id: u64) -> DbResult<bool> {
-        let response = crate::get_json::<UserPremiumResponse>(format!("/user/{}/premium", user_id)).await?;
+        let response =
+            crate::get_json::<UserPremiumResponse>(format!("/user/{}/premium", user_id)).await?;
 
         if response.success && response.content.is_some() {
             Ok(response.content.unwrap().userPremium)
@@ -80,7 +81,10 @@ impl User {
         }
     }
 
-    pub async fn set(user_id: u64, user: User) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
+    pub async fn set(
+        user_id: u64,
+        user: User,
+    ) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
         let response = crate::patch_json(format!("/user/{}", user_id), user).await;
 
         match response {
