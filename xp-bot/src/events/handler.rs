@@ -297,6 +297,7 @@ impl EventHandler for Handler {
         if guild.modules.messagexp {
             // check if user is on cooldown
             let last_timestamp = member.timestamps.message_cooldown.unwrap_or(0);
+
             let timestamp = chrono::Utc::now().timestamp() * 1000;
             if is_cooldowned(timestamp as u64, last_timestamp, guild.values.messagecooldown as u64 * 1000) {
                 return ();
@@ -375,8 +376,9 @@ impl EventHandler for Handler {
             member.timestamps.message_cooldown = Some(timestamp as u64);
 
             member = conform_xpc(member, &ctx, &guild_id, &msg.author.id.0).await;
+
             // update database
-            let _ = GuildMember::set_xp(guild_id, user_id, &member.xp, &member).await;
+            let _ = GuildMember::set_guild_member(guild_id, msg.author.id.0, member.clone()).await;
         }
 
         /*
