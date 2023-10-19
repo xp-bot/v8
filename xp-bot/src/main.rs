@@ -1,6 +1,6 @@
 use events::handler::Handler;
 use log::{error, info};
-use serenity::{Client, prelude::GatewayIntents};
+use serenity::{prelude::GatewayIntents, Client};
 use std::{env, time::Duration};
 use tokio::time::sleep;
 
@@ -22,17 +22,18 @@ async fn main() {
     // client initialization
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
-    let mut client = Client::builder(&token, 
+    let mut client = Client::builder(
+        &token,
         GatewayIntents::non_privileged()
             | GatewayIntents::GUILD_MEMBERS
             | GatewayIntents::GUILD_MESSAGES
             | GatewayIntents::GUILDS
             | GatewayIntents::GUILD_VOICE_STATES
-            | GatewayIntents::MESSAGE_CONTENT
+            | GatewayIntents::MESSAGE_CONTENT,
     )
-        .event_handler(Handler)
-        .await
-        .expect("Err creating client");
+    .event_handler(Handler)
+    .await
+    .expect("Err creating client");
 
     // sharding
     let manager = client.shard_manager.clone();

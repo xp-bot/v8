@@ -10,7 +10,7 @@ use crate::{
     commands::XpCommand,
     utils::{
         colors,
-        utils::{eligibility_helper, is_cooldowned, format_number},
+        utils::{eligibility_helper, format_number, is_cooldowned},
     },
 };
 use rand::Rng;

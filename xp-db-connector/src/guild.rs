@@ -115,20 +115,25 @@ impl Guild {
         }
     }
 
-    pub async fn delete(guild_id: &u64) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
+    pub async fn delete(
+        guild_id: &u64,
+    ) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
         crate::delete_json(format!("/guild/{}", guild_id)).await?;
 
         Ok(Ok(()))
     }
 
-    pub async fn delete_xp(guild_id: &u64) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
+    pub async fn delete_xp(
+        guild_id: &u64,
+    ) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
         crate::delete_json(format!("/guild/{}/members/xp", guild_id)).await?;
 
         Ok(Ok(()))
     }
 
     pub async fn is_premium(guild_id: &u64) -> DbResult<bool> {
-        let response = crate::get_json::<GuildPremiumResponse>(format!("/guild/{}/premium", guild_id)).await?;
+        let response =
+            crate::get_json::<GuildPremiumResponse>(format!("/guild/{}/premium", guild_id)).await?;
 
         Ok(response.premium)
     }

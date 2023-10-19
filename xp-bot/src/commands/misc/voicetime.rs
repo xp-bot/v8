@@ -70,7 +70,7 @@ impl XpCommand for VoicetimeCommand {
                         response
                             .kind(InteractionResponseType::ChannelMessageWithSource)
                             .interaction_response_data(|message| {
-                                message.content("This user has never joined a voice channel.");
+                                message.content("This user has not joined a voice channel yet.");
                                 message.ephemeral(true)
                             })
                     })
@@ -82,7 +82,7 @@ impl XpCommand for VoicetimeCommand {
         };
 
         // check if the user is currently in a voice channel
-        match ctx
+        let state = match ctx
             .cache
             .guild(command.guild_id.unwrap())
             .unwrap()
@@ -106,9 +106,25 @@ impl XpCommand for VoicetimeCommand {
             }
         };
 
-        let current_timestamp = chrono::Utc::now().timestamp() * 1000;
-
         let guild = Guild::from_id(command.guild_id.unwrap().0).await?;
+
+        // check if the user is in a voicechannel that's ignored
+        if guild.clone().ignored.channels.unwrap().contains(&state.unwrap().channel_id.unwrap().0.to_string()) {
+            command
+                .create_interaction_response(&ctx.http, |response| {
+                    response
+                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                        .interaction_response_data(|message| {
+                            message.content("This voice channel is ignored.");
+                            message.ephemeral(true)
+                        })
+                })
+                .await
+                .unwrap();
+            return Ok(());
+        }
+
+        let current_timestamp = chrono::Utc::now().timestamp() * 1000;
 
         let boost_percentage = utils::calculate_total_boost_percentage(
             guild.clone(),
@@ -181,21 +197,26 @@ impl XpCommand for VoicetimeCommand {
                     .kind(InteractionResponseType::ChannelMessageWithSource)
                     .interaction_response_data(|message| {
                         message.embed(|embed| {
-                            embed.title(format!(
-                                "{}'s voicetime",
-                                username
-                            ));
+                            embed.title(format!("{}'s voicetime", username));
                             embed.description(time_string);
 
                             if level_difference > 0 {
                                 embed.field(
                                     "Level",
-                                    format!("**{} → {}**", crate::utils::utils::format_number(current_level as u64), crate::utils::utils::format_number(new_level as u64)),
+                                    format!(
+                                        "**{} → {}**",
+                                        crate::utils::utils::format_number(current_level as u64),
+                                        crate::utils::utils::format_number(new_level as u64)
+                                    ),
                                     true,
                                 );
                             }
 
-                            embed.field("XP", crate::utils::utils::format_number(voice_xp as u64), true);
+                            embed.field(
+                                "XP",
+                                crate::utils::utils::format_number(voice_xp as u64),
+                                true,
+                            );
                             embed.field("", "", true);
                             embed.color(colors::blue());
                             embed

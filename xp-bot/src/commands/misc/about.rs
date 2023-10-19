@@ -1,10 +1,14 @@
 use serenity::{
+    async_trait,
     builder::{CreateApplicationCommand, CreateEmbed},
-    model::prelude::{application_command::ApplicationCommandInteraction, InteractionResponseType, component::ButtonStyle, ReactionType},
-    prelude::Context, async_trait,
+    model::prelude::{
+        application_command::ApplicationCommandInteraction, component::ButtonStyle,
+        InteractionResponseType, ReactionType,
+    },
+    prelude::Context,
 };
 
-use crate::{utils::colors, commands::XpCommand};
+use crate::{commands::XpCommand, utils::colors};
 
 pub struct AboutCommand;
 
@@ -14,13 +18,20 @@ impl XpCommand for AboutCommand {
         "about"
     }
 
-    fn register<'a>(&self, command: &'a mut CreateApplicationCommand) -> &'a mut CreateApplicationCommand {
+    fn register<'a>(
+        &self,
+        command: &'a mut CreateApplicationCommand,
+    ) -> &'a mut CreateApplicationCommand {
         command
-        .name("about")
-        .description("Get every info about the bot.")
+            .name("about")
+            .description("Get every info about the bot.")
     }
 
-    async fn exec(&self, ctx: &Context, command: &ApplicationCommandInteraction) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn exec(
+        &self,
+        ctx: &Context,
+        command: &ApplicationCommandInteraction,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let time_then = std::time::Instant::now();
         let _ = ctx.http.get_gateway().await?;
         let latency = time_then.elapsed().as_millis();

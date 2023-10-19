@@ -56,10 +56,13 @@ pub struct XPPostBody {
     userData: GuildMemberData,
 }
 
-
 impl GuildMember {
     pub async fn from_id(guild_id: u64, member_id: u64) -> DbResult<GuildMember> {
-        let response = crate::get_json::<GuildMemberResponse>(format!("/guild/{}/member/{}", guild_id, member_id)).await?;
+        let response = crate::get_json::<GuildMemberResponse>(format!(
+            "/guild/{}/member/{}",
+            guild_id, member_id
+        ))
+        .await?;
 
         if response.success && response.content.is_some() {
             Ok(response.content.unwrap())
@@ -68,11 +71,20 @@ impl GuildMember {
         }
     }
 
-    pub async fn set_xp(guild_id: u64, member_id: u64, xp: &u64, guild_member: &GuildMember) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
-        let response = crate::post_json(format!("/guild/{}/member/{}/direct/xp", guild_id, member_id), XPPostBody {
-            xp: *xp,
-            userData: guild_member.userData.clone(),
-        }).await;
+    pub async fn set_xp(
+        guild_id: u64,
+        member_id: u64,
+        xp: &u64,
+        guild_member: &GuildMember,
+    ) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
+        let response = crate::post_json(
+            format!("/guild/{}/member/{}/direct/xp", guild_id, member_id),
+            XPPostBody {
+                xp: *xp,
+                userData: guild_member.userData.clone(),
+            },
+        )
+        .await;
 
         match response {
             Ok(_) => Ok(Ok(())),
@@ -80,8 +92,16 @@ impl GuildMember {
         }
     }
 
-    pub async fn set_guild_member(guild_id: u64, member_id: u64, guild_member: GuildMember) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
-        let response = crate::patch_json(format!("/guild/{}/member/{}", guild_id, member_id), guild_member).await;
+    pub async fn set_guild_member(
+        guild_id: u64,
+        member_id: u64,
+        guild_member: GuildMember,
+    ) -> DbResult<Result<(), Box<(dyn std::error::Error + Send + Sync + 'static)>>> {
+        let response = crate::patch_json(
+            format!("/guild/{}/member/{}", guild_id, member_id),
+            guild_member,
+        )
+        .await;
 
         match response {
             Ok(_) => Ok(Ok(())),
