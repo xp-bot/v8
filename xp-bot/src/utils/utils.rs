@@ -346,7 +346,7 @@ pub async fn conform_xpc(
     member.userData.avatar = Some(
         match ctx
             .http
-            .get_member(guild_id.to_owned(), user_id.to_owned())
+            .get_user(user_id.to_owned())
             .await
             .unwrap()
             .avatar
@@ -359,10 +359,10 @@ pub async fn conform_xpc(
     member.userData.banner = Some(
         match ctx
             .http
-            .get_member(guild_id.to_owned(), user_id.to_owned())
+            .get_user(user_id.to_owned())
             .await
             .unwrap()
-            .avatar
+            .banner
         {
             Some(banner) => banner,
             None => "".to_string(),
