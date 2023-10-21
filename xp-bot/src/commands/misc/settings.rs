@@ -168,7 +168,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Message xp: {}",
-                        crate::utils::utils::format_number(guild.values.messagexp as u64)
+                        crate::utils::utils::format_number(guild.values.messagexp as i64)
                     ),
                     "The amount of xp a user gets per message.".to_string(),
                     true,
@@ -176,7 +176,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Message cooldown: {}",
-                        crate::utils::utils::format_number(guild.values.messagecooldown as u64)
+                        crate::utils::utils::format_number(guild.values.messagecooldown as i64)
                     ),
                     "The time in seconds until the next message will be counted.".to_string(),
                     true,
@@ -184,7 +184,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Voice xp: {}",
-                        crate::utils::utils::format_number(guild.values.voicexp as u64)
+                        crate::utils::utils::format_number(guild.values.voicexp as i64)
                     ),
                     "The amount of xp a user receives per minute in the voicechat.".to_string(),
                     true,
@@ -192,7 +192,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Voice Join Cooldown: {}",
-                        crate::utils::utils::format_number(guild.values.voicejoincooldown as u64)
+                        crate::utils::utils::format_number(guild.values.voicejoincooldown as i64)
                     ),
                     "The time in seconds until XP starts measuring the user's voicechat time."
                         .to_string(),
@@ -201,7 +201,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Reaction xp: {}",
-                        crate::utils::utils::format_number(guild.values.reactionxp as u64)
+                        crate::utils::utils::format_number(guild.values.reactionxp as i64)
                     ),
                     "The amount of xp a user gets per reaction.".to_string(),
                     true,
@@ -209,7 +209,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Loot xp: {}",
-                        crate::utils::utils::format_number(guild.values.lootXP as u64)
+                        crate::utils::utils::format_number(guild.values.lootXP as i64)
                     ),
                     "The amount of xp a user gets for playing `/loot`.".to_string(),
                     true,
@@ -217,7 +217,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Fish xp: {}",
-                        crate::utils::utils::format_number(guild.values.fishXP as u64)
+                        crate::utils::utils::format_number(guild.values.fishXP as i64)
                     ),
                     "The amount of xp a user gets for playing `/fish`.".to_string(),
                     true,
@@ -225,7 +225,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Roll xp: {}",
-                        crate::utils::utils::format_number(guild.values.rollXP as u64)
+                        crate::utils::utils::format_number(guild.values.rollXP as i64)
                     ),
                     "The amount of xp a user gets for playing `/roll`.".to_string(),
                     true,
@@ -233,7 +233,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Game cooldown: {}",
-                        crate::utils::utils::format_number(guild.values.gamecooldown as u64)
+                        crate::utils::utils::format_number(guild.values.gamecooldown as i64)
                     ),
                     format!(
                         "`{}` The time in seconds until a user start another game.",
@@ -244,7 +244,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Trivia xp: {}",
-                        crate::utils::utils::format_number(guild.values.triviaxp as u64)
+                        crate::utils::utils::format_number(guild.values.triviaxp as i64)
                     ),
                     "The maximum amount of xp a user gets for playing trivia.".to_string(),
                     true,
@@ -252,7 +252,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Trivia cooldown: {}",
-                        crate::utils::utils::format_number(guild.values.triviacooldown as u64)
+                        crate::utils::utils::format_number(guild.values.triviacooldown as i64)
                     ),
                     format!(
                         "`{}` The time in seconds until a user can start a new Trivia game.",
@@ -263,7 +263,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Maximum daily xp: {}",
-                        crate::utils::utils::format_number(guild.values.maximumdailyxp as u64)
+                        crate::utils::utils::format_number(guild.values.maximumdailyxp as i64)
                     ),
                     "The maximum amount of xp obtainable by executing the `/daily` command."
                         .to_string(),
@@ -272,7 +272,7 @@ impl XpCommand for SettingsCommand {
                 fields.push((
                     format!(
                         "Maximum level: {}",
-                        crate::utils::utils::format_number(guild.values.maximumlevel as u64)
+                        crate::utils::utils::format_number(guild.values.maximumlevel as i64)
                     ),
                     "The maximum level that can be reached.".to_string(),
                     true,

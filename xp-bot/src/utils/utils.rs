@@ -87,7 +87,7 @@ pub fn calculate_total_boost_percentage_by_ids(
     boost_percentage
 }
 
-pub fn format_number(number: u64) -> String {
+pub fn format_number(number: i64) -> String {
     let number_string = number.to_string();
     let mut formatted_number = String::new();
 

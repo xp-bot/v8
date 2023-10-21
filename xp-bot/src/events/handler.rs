@@ -768,12 +768,12 @@ impl Handler {
                         if level_difference > 0 {
                             embed.field(
                                 "Level",
-                                format!("**{} → {}**", crate::utils::utils::format_number(current_level as u64), crate::utils::utils::format_number(new_level as u64)),
+                                format!("**{} → {}**", crate::utils::utils::format_number(current_level as i64), crate::utils::utils::format_number(new_level as i64)),
                                 true,
                             );
                         }
 
-                        embed.field("XP", crate::utils::utils::format_number(xp as u64), true);
+                        embed.field("XP", crate::utils::utils::format_number(xp as i64), true);
                         embed.field("", "", true);
                         embed.color(colors::blue());
                         embed

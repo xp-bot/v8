@@ -143,7 +143,7 @@ impl XpCommand for RollCommand {
                             embed.description(format!(
                                 ":game_die: | You rolled a **{}** and got **{}** xp!",
                                 random_num,
-                                format_number(random_num * guild.values.rollXP as u64),
+                                format_number((random_num * guild.values.rollXP as u64) as i64),
                             ));
                             embed.color(colors::green())
                         })

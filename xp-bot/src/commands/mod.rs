@@ -31,6 +31,7 @@ pub const COMMANDS: &[&dyn XpCommand] = &[
     &misc::settings::SettingsCommand,
     &misc::voicetime::VoicetimeCommand,
     &misc::incognito::IncognitoCommand,
+    &misc::distance::DistanceCommand,
     &admin::add::AddCommand,
     &admin::set::SetCommand,
     &admin::remove::RemoveCommand,

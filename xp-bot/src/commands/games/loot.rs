@@ -140,7 +140,7 @@ impl XpCommand for LootCommand {
                             embed.description(format!(
                                 ":package: | You found **{}** crate and got **{}** xp!",
                                 game_result.item,
-                                format_number(game_result.xp as u64),
+                                format_number(game_result.xp),
                             ));
                             embed.color(colors::green())
                         })

@@ -100,7 +100,7 @@ impl XpCommand for RemoveCommand {
                             .embed(|embed| {
                                 embed.description(format!(
                                     "Successfully removed **{}** xp from <@{}>.",
-                                    format_number(amount as u64),
+                                    format_number(amount as i64),
                                     user
                                 ));
                                 embed.color(colors::green());
