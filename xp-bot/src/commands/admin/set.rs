@@ -100,7 +100,7 @@ impl XpCommand for SetCommand {
                                 embed.description(format!(
                                     "Successfully set xp of <@{}> to **{}**.",
                                     user,
-                                    format_number(amount as u64)
+                                    format_number(amount as i64)
                                 ));
                                 embed.color(colors::green());
                                 embed

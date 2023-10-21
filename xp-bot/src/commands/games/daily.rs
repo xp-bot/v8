@@ -161,7 +161,7 @@ impl XpCommand for DailyCommand {
                         message.embed(|embed| {
                             embed.description(format!(
                                 "You claimed **{}** xp. Your streak is now **{}**.\n\n{}",
-                                format_number(xp_to_add),
+                                format_number(xp_to_add as i64),
                                 streak,
                                 old_streak_msg
                             ));

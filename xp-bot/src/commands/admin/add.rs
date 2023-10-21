@@ -101,7 +101,7 @@ impl XpCommand for AddCommand {
                             .embed(|embed| {
                                 embed.description(format!(
                                     "Successfully added **{}** xp to <@{}>.",
-                                    format_number(amount as u64),
+                                    format_number(amount as i64),
                                     user
                                 ));
                                 embed.color(colors::green());

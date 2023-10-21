@@ -87,7 +87,7 @@ pub fn calculate_total_boost_percentage_by_ids(
     boost_percentage
 }
 
-pub fn format_number(number: u64) -> String {
+pub fn format_number(number: i64) -> String {
     let number_string = number.to_string();
     let mut formatted_number = String::new();
 
@@ -346,7 +346,7 @@ pub async fn conform_xpc(
     member.userData.avatar = Some(
         match ctx
             .http
-            .get_member(guild_id.to_owned(), user_id.to_owned())
+            .get_user(user_id.to_owned())
             .await
             .unwrap()
             .avatar
@@ -359,10 +359,10 @@ pub async fn conform_xpc(
     member.userData.banner = Some(
         match ctx
             .http
-            .get_member(guild_id.to_owned(), user_id.to_owned())
+            .get_user(user_id.to_owned())
             .await
             .unwrap()
-            .avatar
+            .banner
         {
             Some(banner) => banner,
             None => "".to_string(),

@@ -137,7 +137,7 @@ impl XpCommand for FishCommand {
                         message.embed(|embed| {
                             embed.description(format!(
                                 ":fishing_pole_and_fish: | You got **{}** xp for finding **{}**.",
-                                format_number(game_result.xp as u64),
+                                format_number(game_result.xp),
                                 game_result.item
                             ));
                             embed.color(colors::green())

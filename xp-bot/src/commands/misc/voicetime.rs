@@ -205,8 +205,8 @@ impl XpCommand for VoicetimeCommand {
                                     "Level",
                                     format!(
                                         "**{} → {}**",
-                                        crate::utils::utils::format_number(current_level as u64),
-                                        crate::utils::utils::format_number(new_level as u64)
+                                        crate::utils::utils::format_number(current_level as i64),
+                                        crate::utils::utils::format_number(new_level as i64)
                                     ),
                                     true,
                                 );
@@ -214,7 +214,7 @@ impl XpCommand for VoicetimeCommand {
 
                             embed.field(
                                 "XP",
-                                crate::utils::utils::format_number(voice_xp as u64),
+                                crate::utils::utils::format_number(voice_xp as i64),
                                 true,
                             );
                             embed.field("", "", true);

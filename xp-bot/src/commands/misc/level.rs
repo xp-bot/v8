@@ -65,7 +65,7 @@ impl XpCommand for LevelCommand {
         if required_xp > guild_member.xp as usize {
             need_until = format!(
                 "You still need **{} xp** to reach level **{}**.",
-                crate::utils::utils::format_number(required_xp as u64 - guild_member.xp),
+                crate::utils::utils::format_number((required_xp as u64 - guild_member.xp) as i64),
                 level
             );
         }
@@ -75,9 +75,9 @@ impl XpCommand for LevelCommand {
             message.embed(|embed: &mut CreateEmbed| {
                 embed.title(format!("Level {}", level)).description(format!(
                     "You need **{} xp** to reach level **{}**.\n You currently have **{} xp** (**{}%**).\n\n{}",
-                    crate::utils::utils::format_number(required_xp as u64),
+                    crate::utils::utils::format_number(required_xp as i64),
                     level,
-                    crate::utils::utils::format_number(guild_member.xp as u64),
+                    crate::utils::utils::format_number(guild_member.xp as i64),
                     (guild_member.xp as f32 / required_xp as f32 * 100.0).round(),
                     need_until
                 )).color(colors::blue())
