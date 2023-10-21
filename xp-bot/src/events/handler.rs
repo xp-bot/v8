@@ -369,8 +369,9 @@ impl EventHandler for Handler {
                 }
             }
 
-            // add xp to user
-            member.xp += xp as u64;
+            if !guild.modules.maximumlevel && !(new_level as u32 >= guild.values.maximumlevel) {
+                member.xp += xp as u64;
+            }
 
             // set new cooldown
             member.timestamps.message_cooldown = Some(timestamp as u64);
@@ -542,7 +543,7 @@ impl EventHandler for Handler {
             handle_level_roles(&guild.clone(), &user_id, &new_level, &ctx, add_reaction.guild_id.unwrap().0).await;
         
             if !member.settings.incognito.unwrap_or(false) {
-                send_level_up(guild,
+                send_level_up(guild.clone(),
                     user_id,
                     current_level,
                     new_level,
@@ -553,8 +554,10 @@ impl EventHandler for Handler {
             }
         }
 
-        // add xp to user
-        member.xp += xp as u64;
+        if !guild.modules.maximumlevel && !(new_level as u32 >= guild.values.maximumlevel) {
+            member.xp += xp as u64;
+        }
+
         member = conform_xpc(member, &ctx, &guild_id, &add_reaction.user_id.unwrap().0).await;
 
         // update database
@@ -782,8 +785,10 @@ impl Handler {
                 .await;
         }
 
-        // add xp to user
-        member.xp += xp as u64;
+        if !guild.modules.maximumlevel && !(new_level as u32 >= guild.values.maximumlevel) {
+            member.xp += xp as u64;
+        }
+        
         member = conform_xpc(member, &ctx, &guild_id.0, &left.user_id.0).await;
 
         // update database
