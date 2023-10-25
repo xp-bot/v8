@@ -6,7 +6,7 @@ use serenity::{
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
 
-use crate::{commands::{self, XpCommand, COMMANDS}, utils::{colors, utils::{is_cooldowned, self, send_level_up, handle_level_roles, conform_xpc}, math::calculate_level}};
+use crate::{commands::{self, COMMANDS}, utils::{colors, utils::{is_cooldowned, self, send_level_up, handle_level_roles, conform_xpc}, math::calculate_level}};
 
 pub struct Handler;
 
@@ -15,10 +15,10 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         if let Some(shard) = ready.shard {
             info!(
-                "{} is connected on shard {}/{}!",
-                ready.user.name,
+                "Shard {} out of {} is connected to {} guilds",
                 shard[0] + 1,
-                shard[1]
+                shard[1],
+                ready.guilds.len()
             );
         } else {
             info!("Connected on shard");
@@ -28,7 +28,7 @@ impl EventHandler for Handler {
         ctx.set_activity(Activity::listening("xp-bot.net")).await;
     }
 
-    async fn cache_ready(&self, ctx: Context, guilds: Vec<GuildId>) {
+    async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
         info!("Cache is ready!");
 
         // register slash commands
