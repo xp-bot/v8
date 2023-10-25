@@ -1,12 +1,12 @@
 use log::{error, info};
 use serenity::{
     async_trait,
-    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId, component::ButtonStyle, ReactionType, Member, RoleId, GuildChannel}, voice::VoiceState},
+    model::{prelude::{Activity, GuildId, Interaction, InteractionResponseType, Ready, Message, Reaction, ChannelId, component::ButtonStyle, ReactionType, Member, RoleId, GuildChannel, command::Command}, voice::VoiceState},
     prelude::{Context, EventHandler},
 };
 use xp_db_connector::{guild::Guild, guild_member::GuildMember, user::User};
 
-use crate::{commands, utils::{colors, utils::{is_cooldowned, self, send_level_up, handle_level_roles, conform_xpc}, math::calculate_level}};
+use crate::{commands::{self, XpCommand, COMMANDS}, utils::{colors, utils::{is_cooldowned, self, send_level_up, handle_level_roles, conform_xpc}, math::calculate_level}};
 
 pub struct Handler;
 
@@ -32,7 +32,9 @@ impl EventHandler for Handler {
         info!("Cache is ready!");
 
         // register slash commands
-        for guild in guilds {
+
+// -> dev env slash registration
+/*         for guild in guilds {
             let commands = GuildId::set_application_commands(&guild, &ctx.http, |commands| {
                 for command in commands::COMMANDS {
                     commands.create_application_command(|c| command.register(c));
@@ -46,6 +48,16 @@ impl EventHandler for Handler {
             }
 
             info!("Registered commands for guild {}", guild);
+        } */
+
+// -> production slash registration
+        let mut c = 1;
+        for commands in COMMANDS {
+            Command::create_global_application_command(&ctx.http, |command| {
+                log::info!("Registering command {} ({}/{})", commands.name(), c, COMMANDS.len());
+                c += 1;
+                commands.register(command)
+            }).await.unwrap();
         }
     }
 
