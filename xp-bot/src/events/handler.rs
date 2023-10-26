@@ -26,14 +26,14 @@ impl EventHandler for Handler {
 
         
 // -> production slash registration
-        let mut c = 1;
-        for commands in COMMANDS {
-            Command::create_global_application_command(&ctx.http, |command| {
-                log::info!("Registering command {} ({}/{})", commands.name(), c, COMMANDS.len());
-                c += 1;
-                commands.register(command)
-            }).await.unwrap();
-        }
+        // let mut c = 1;
+        // for commands in COMMANDS {
+        //     Command::create_global_application_command(&ctx.http, |command| {
+        //         log::info!("Registering command {} ({}/{})", commands.name(), c, COMMANDS.len());
+        //         c += 1;
+        //         commands.register(command)
+        //     }).await.unwrap();
+        // }
 
         // set activity
         ctx.set_activity(Activity::listening("xp-bot.net")).await;
