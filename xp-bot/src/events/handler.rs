@@ -24,11 +24,22 @@ impl EventHandler for Handler {
             info!("Connected on shard");
         }
 
+        
+// -> production slash registration
+        let mut c = 1;
+        for commands in COMMANDS {
+            Command::create_global_application_command(&ctx.http, |command| {
+                log::info!("Registering command {} ({}/{})", commands.name(), c, COMMANDS.len());
+                c += 1;
+                commands.register(command)
+            }).await.unwrap();
+        }
+
         // set activity
         ctx.set_activity(Activity::listening("xp-bot.net")).await;
     }
 
-    async fn cache_ready(&self, ctx: Context, _guilds: Vec<GuildId>) {
+    async fn cache_ready(&self, _ctx: Context, _guilds: Vec<GuildId>) {
         info!("Cache is ready!");
 
         // register slash commands
@@ -49,16 +60,6 @@ impl EventHandler for Handler {
 
             info!("Registered commands for guild {}", guild);
         } */
-
-// -> production slash registration
-        let mut c = 1;
-        for commands in COMMANDS {
-            Command::create_global_application_command(&ctx.http, |command| {
-                log::info!("Registering command {} ({}/{})", commands.name(), c, COMMANDS.len());
-                c += 1;
-                commands.register(command)
-            }).await.unwrap();
-        }
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
