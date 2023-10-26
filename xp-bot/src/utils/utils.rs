@@ -191,7 +191,7 @@ pub async fn handle_level_roles(
 
     roles_to_add.sort_by(|a, b| b.level.cmp(&a.level));
 
-    log::info!("Roles to add: {:?}", roles_to_add);
+    log::debug!("Roles to add: {:?}", roles_to_add);
 
     let remove_reached_roles = guild.modules.removereachedlevelroles;
     let single_rank_role = guild.modules.singlerankrole;
@@ -252,18 +252,18 @@ pub async fn handle_level_roles(
 }
 
 pub struct GameResult {
-    pub roll: u32,
-    pub fish: u32,
-    pub loot: u32,
+    pub roll: i64,
+    pub fish: i64,
+    pub loot: i64,
 }
 
-pub fn calc_games_bulk(roll_xp: u32, fish_xp: u32, loot_xp: u32) -> GameResult {
+pub fn calc_games_bulk(roll_xp: i64, fish_xp: i64, loot_xp: i64) -> GameResult {
     let random_num = rand::thread_rng().gen_range(1..=6);
 
     GameResult {
         roll: roll_xp * random_num,
-        fish: game_fish(fish_xp as i64).xp as u32,
-        loot: game_loot(loot_xp as i64).xp as u32,
+        fish: game_fish(fish_xp as i64).xp,
+        loot: game_loot(loot_xp as i64).xp,
     }
 }
 
