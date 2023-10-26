@@ -4,7 +4,7 @@ use serenity::{prelude::GatewayIntents, Client, client::bridge::gateway::ShardId
 use std::{env, time::Duration, collections::HashMap};
 use tokio::time::sleep;
 
-use crate::utils::topgg::post_bot_stats;
+use crate::utils::{topgg::post_bot_stats, ilum::send_shard_report};
 
 mod commands;
 mod events;
@@ -43,7 +43,7 @@ async fn main() {
 
     tokio::spawn(async move {
         loop {
-            sleep(Duration::from_secs(120)).await;
+            sleep(Duration::from_secs(30)).await;
 
             let lock = manager.lock().await;
             let shard_runners = lock.runners.lock().await;
@@ -63,7 +63,11 @@ async fn main() {
             for (id, runner) in shard_runners.iter() {
                 if runner.latency.is_some() {
                     
-                    post_bot_stats(id.0, 0, shard_runners.len() as u64).await;
+                    post_bot_stats(id.0, shard_guild_count.get(&id).unwrap().to_owned(), shard_runners.len() as u64).await;
+
+                    let latency = runner.latency.unwrap().as_millis() as i64;
+                    let connected = runner.stage == serenity::gateway::ConnectionStage::Connected;
+                    send_shard_report(id.0, shard_guild_count.get(&id).unwrap().to_owned(), latency, connected).await;
 
                     info!(
                         "Shard {} is {:?} ({:?} latency)",

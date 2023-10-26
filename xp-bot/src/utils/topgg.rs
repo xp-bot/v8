@@ -47,4 +47,6 @@ pub async fn post_bot_stats(shard_id: u64, guild_count: usize, shard_count: u64)
         .send()
         .await
         .unwrap();
+
+    log::debug!("Posted bot stats to top.gg");
 }
