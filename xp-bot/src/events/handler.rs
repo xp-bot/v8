@@ -302,8 +302,20 @@ impl EventHandler for Handler {
         }
 
         // get database data
-        let guild = Guild::from_id(guild_id).await.unwrap();
-        let mut member = GuildMember::from_id(guild_id, user_id).await.unwrap();
+        let guild = match Guild::from_id(guild_id).await {
+            Ok(guild) => guild,
+            Err(resp) => {
+                log::error!("Could not get guild ({}) from database: {:?}", guild_id, resp);
+                return ();
+            }
+        };
+        let mut member = match GuildMember::from_id(guild_id, user_id).await {
+            Ok(member) => member,
+            Err(resp) => {
+                log::error!("Could not get member ({}) of guild ({}) from database: {:?}", user_id, guild_id, resp);
+                return ();
+            }
+        };
 
         // check if messagexp module is enabled
         if guild.modules.messagexp {
@@ -460,13 +472,13 @@ impl EventHandler for Handler {
         }
 
         // update nickname
-        let _ = ctx
+        let member = ctx
             .http
             .get_member(guild_id, user_id)
-            .await
-            .unwrap()
-            .edit(&ctx.http, |edit| edit.nickname(new_nick.clone()))
             .await;
+
+
+        member.edit(&ctx.http, |edit| edit.nickname(new_nick.clone())).await;
 
         return ();
     }
