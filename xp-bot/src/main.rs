@@ -67,7 +67,7 @@ async fn main() {
 
                     let latency = runner.latency.unwrap().as_millis() as i64;
                     let connected = runner.stage == serenity::gateway::ConnectionStage::Connected;
-                    send_shard_report(id.0, shard_guild_count.get(&id).unwrap().to_owned(), latency, connected).await;
+                    send_shard_report(id.0 + 1, shard_guild_count.get(&id).unwrap().to_owned(), latency, connected).await;
 
                     info!(
                         "Shard {} is {:?} ({:?} latency)",
