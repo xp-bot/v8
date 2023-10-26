@@ -1,8 +1,10 @@
 use events::handler::Handler;
 use log::{error, info};
-use serenity::{prelude::GatewayIntents, Client};
-use std::{env, time::Duration};
+use serenity::{prelude::GatewayIntents, Client, client::bridge::gateway::ShardId};
+use std::{env, time::Duration, collections::HashMap};
 use tokio::time::sleep;
+
+use crate::utils::{topgg::post_bot_stats, ilum::send_shard_report};
 
 mod commands;
 mod events;
@@ -37,6 +39,7 @@ async fn main() {
 
     // sharding
     let manager = client.shard_manager.clone();
+    let cache = client.cache_and_http.clone();
 
     tokio::spawn(async move {
         loop {
@@ -45,8 +48,27 @@ async fn main() {
             let lock = manager.lock().await;
             let shard_runners = lock.runners.lock().await;
 
+            let guilds = cache.cache.guilds();
+            let mut shard_guild_count: HashMap<ShardId, usize> = HashMap::new();
+            for guild in guilds {
+                let guild_id: u64 = guild.0;
+                let shard_id: u64 = serenity::utils::shard_id(guild_id, shard_runners.len() as u64);
+
+                match shard_guild_count.get(&ShardId(shard_id)) {
+                    Some(count) => shard_guild_count.insert(ShardId(shard_id), count + 1),
+                    None => shard_guild_count.insert(ShardId(shard_id), 1),
+                };
+            }
+
             for (id, runner) in shard_runners.iter() {
                 if runner.latency.is_some() {
+                    
+                    post_bot_stats(id.0, shard_guild_count.get(&id).unwrap().to_owned(), shard_runners.len() as u64).await;
+
+                    let latency = runner.latency.unwrap().as_millis() as i64;
+                    let connected = runner.stage == serenity::gateway::ConnectionStage::Connected;
+                    send_shard_report(id.0 + 1, shard_guild_count.get(&id).unwrap().to_owned(), latency, connected).await;
+
                     info!(
                         "Shard {} is {:?} ({:?} latency)",
                         id.0 + 1,

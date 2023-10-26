@@ -12,15 +12,18 @@ We're always looking for contributors! If you want to contribute, please read th
 1. Create a `.env` file with the following content:
 ```env
 # Bot
-DISCORD_TOKEN= <YOUR BOT TOKEN HERE>
+DISCORD_TOKEN=
 WEBSITE=https://xp-bot.net
 
 # API
 API_AUTH=
 API_URL=http://namespace.media:3000
 
+# Ilum
+ILUM_AUTH=
+
 # Top.gg
-TOPGG_TOKEN=  <YOUR TOP.GG TOKEN HERE>
+TOPGG_TOKEN=
 
 # Config
 RUST_LOG=error,xp_bot=info

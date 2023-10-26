@@ -1,3 +1,5 @@
+use serde_json::json;
+
 pub async fn check_user_vote(user_id: &u64) -> bool {
     let client = reqwest::Client::new();
 
@@ -23,4 +25,28 @@ pub async fn check_user_vote(user_id: &u64) -> bool {
     }
 
     false
+}
+
+pub async fn post_bot_stats(shard_id: u64, guild_count: usize, shard_count: u64) {
+    let client = reqwest::Client::new();
+    let topgg_token = dotenv::var("TOPGG_TOKEN").expect("Expected a token in the environment");
+
+    let body = json!({
+        "shard_id": shard_id,
+        "shard_count": shard_count,
+        "server_count": guild_count
+    });
+
+    let _ = client
+        .post(format!(
+            "https://top.gg/api/bots/{}/stats",
+            "706935674800177193"
+        ))
+        .header("Authorization", topgg_token)
+        .json(&body)
+        .send()
+        .await
+        .unwrap();
+
+    log::debug!("Posted bot stats to top.gg");
 }
