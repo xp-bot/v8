@@ -43,6 +43,8 @@ impl XpCommand for VoicetimeCommand {
         ctx: &Context,
         command: &ApplicationCommandInteraction,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        log::info!("voicetime command used by {}: 1", command.user.id.0);
+
         let mut user_id = command.user.id.0;
 
         match command.data.options.first() {
@@ -54,11 +56,15 @@ impl XpCommand for VoicetimeCommand {
             None => {}
         }
 
+        log::info!("voicetime command used by {}: 2", user_id);
+
         let user = User::from_id(user_id).await?;
 
         let guild_member = GuildMember::from_id(command.guild_id.unwrap().0, user_id)
             .await
             .unwrap();
+
+        log::info!("voicetime command used by {}: 3", user_id);
 
         let last_timestamp = user.timestamps.join_voicechat;
 
@@ -80,6 +86,8 @@ impl XpCommand for VoicetimeCommand {
                 return Ok(());
             }
         };
+
+        log::info!("voicetime command used by {}: 4", user_id);
 
         // check if the user is currently in a voice channel
         let state = match ctx
@@ -106,6 +114,8 @@ impl XpCommand for VoicetimeCommand {
             }
         };
 
+        log::info!("voicetime command used by {}: 5", user_id);
+
         let guild = Guild::from_id(command.guild_id.unwrap().0).await?;
 
         // check if the user is in a voicechannel that's ignored
@@ -123,6 +133,8 @@ impl XpCommand for VoicetimeCommand {
                 .unwrap();
             return Ok(());
         }
+
+        log::info!("voicetime command used by {}: 6", user_id);
 
         let current_timestamp = chrono::Utc::now().timestamp() * 1000;
 
@@ -153,6 +165,8 @@ impl XpCommand for VoicetimeCommand {
                 .unwrap()
                 .parent_id,
         );
+
+        log::info!("voicetime command used by {}: 7", user_id);
 
         let voice_xp = calculate_xp_from_voice_time(
             last_timestamp,
@@ -190,6 +204,8 @@ impl XpCommand for VoicetimeCommand {
         } else {
             format!("**{}** seconds", seconds)
         };
+
+        log::info!("voicetime command used by {}: 8", user_id);
 
         let _ = command
             .create_interaction_response(&ctx.http, |response| {
