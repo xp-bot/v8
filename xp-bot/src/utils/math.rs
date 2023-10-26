@@ -5,8 +5,8 @@ pub fn get_required_xp(level: i32) -> usize {
 pub fn calculate_xp_from_voice_time(
     timestamp_then: u64,
     timestamp_now: i64,
-    voice_xp: u32,
-    voice_cooldown: u32,
+    voice_xp: i64,
+    voice_cooldown: i64,
     boost_percentage: f32,
 ) -> u32 {
     let time_seconds = (timestamp_now - timestamp_then as i64) / 1000;

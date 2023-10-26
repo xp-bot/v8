@@ -393,7 +393,7 @@ impl EventHandler for Handler {
                 }
             }
 
-            if !guild.modules.maximumlevel && !(new_level as u32 >= guild.values.maximumlevel) {
+            if !guild.modules.maximumlevel && !(new_level as i64 >= guild.values.maximumlevel) {
                 member.xp += xp as u64;
             }
 
@@ -583,7 +583,7 @@ impl EventHandler for Handler {
             }
         }
 
-        if !guild.modules.maximumlevel && !(new_level as u32 >= guild.values.maximumlevel) {
+        if !guild.modules.maximumlevel && !(new_level as i64 >= guild.values.maximumlevel) {
             member.xp += xp as u64;
         }
 
@@ -821,7 +821,7 @@ impl Handler {
                 .await;
         }
 
-        if !guild.modules.maximumlevel && !(new_level as u32 >= guild.values.maximumlevel) {
+        if !guild.modules.maximumlevel && !(new_level as i64 >= guild.values.maximumlevel) {
             member.xp += xp as u64;
         }
         

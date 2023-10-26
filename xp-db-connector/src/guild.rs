@@ -23,19 +23,19 @@ pub struct Guild {
 #[allow(non_snake_case)]
 #[derive(Deserialize, Clone, Debug)]
 pub struct GuildValues {
-    pub reactionxp: u32,
-    pub fishXP: u32,
-    pub lootXP: u32,
-    pub messagecooldown: u32,
-    pub messagexp: u32,
-    pub rollXP: u32,
-    pub voicejoincooldown: u32,
-    pub voicexp: u32,
-    pub gamecooldown: u32,
-    pub maximumdailyxp: u32,
-    pub triviacooldown: u32,
-    pub triviaxp: u32,
-    pub maximumlevel: u32,
+    pub reactionxp: i64,
+    pub fishXP: i64,
+    pub lootXP: i64,
+    pub messagecooldown: i64,
+    pub messagexp: i64,
+    pub rollXP: i64,
+    pub voicejoincooldown: i64,
+    pub voicexp: i64,
+    pub gamecooldown: i64,
+    pub maximumdailyxp: i64,
+    pub triviacooldown: i64,
+    pub triviaxp: i64,
+    pub maximumlevel: i64,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -81,7 +81,7 @@ pub struct GuildBoosts {
 #[derive(Deserialize, Clone, Debug)]
 pub struct GuildBoostObject {
     pub id: String,
-    pub percentage: u32,
+    pub percentage: i64,
 }
 
 #[derive(Deserialize, Clone, Debug)]
