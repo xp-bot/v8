@@ -472,13 +472,18 @@ impl EventHandler for Handler {
         }
 
         // update nickname
-        let member = ctx
-            .http
-            .get_member(guild_id, user_id)
-            .await;
-
-
-        member.edit(&ctx.http, |edit| edit.nickname(new_nick.clone())).await;
+        let member = match ctx
+        .http
+        .get_member(guild_id, user_id)
+        .await {
+            Ok(member) => member,
+            Err(resp) => {
+                log::error!("Could not get member ({}) of guild ({}) from database: {:?}", user_id, guild_id, resp);
+                return ();
+            }
+        };
+    
+        let _ = member.edit(&ctx.http, |edit| edit.nickname(new_nick.clone())).await;
 
         return ();
     }
@@ -649,7 +654,14 @@ impl EventHandler for Handler {
                     None => {}
                 }
 
-                Handler::voice_join(ctx, new.guild_id.unwrap(), &new).await;
+                let guild_id = match new.guild_id {
+                    Some(guild_id) => guild_id,
+                    None => {
+                        log::error!("Could not get guild id of user {}", new.user_id.0);
+                        return ();
+                    }
+                };
+                Handler::voice_join(ctx, guild_id, &new).await;
             }
         }
     }
