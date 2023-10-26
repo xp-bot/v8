@@ -36,8 +36,8 @@ jobs:
       - name: Build and push the Docker image
         uses: mr-smithers-excellent/docker-build-push@v5
         with:
-          image: raeys-v8
-          tags: latest
+          image: xp-bot
+          tags: latest, v8
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
