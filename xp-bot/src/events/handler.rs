@@ -35,6 +35,21 @@ impl EventHandler for Handler {
         //     }).await.unwrap();
         // }
 
+        // bulk create commands
+        let commands = Command::set_global_application_commands(&ctx.http, |commands| {
+            for command in commands::COMMANDS {
+                commands.create_application_command(|c| command.register(c));
+                info!("Registered command {}", command.name());
+            }
+            commands
+        }).await;
+
+        if let Err(why) = commands {
+            error!("Could not register commands: {:?}", why);
+        }
+
+        info!("Registered commands");
+
         // set activity
         ctx.set_activity(Activity::listening("xp-bot.net")).await;
     }
